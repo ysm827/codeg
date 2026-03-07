@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Check, ChevronDown, ChevronRight, Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
@@ -204,6 +205,8 @@ export function CommitWorkspace({
   onCommitted,
   onCancel,
 }: CommitWorkspaceProps) {
+  const t = useTranslations("Folder.commitDialog")
+  const tCommon = useTranslations("Folder.common")
   const [entries, setEntries] = useState<GitStatusEntry[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
@@ -416,8 +419,10 @@ export function CommitWorkspace({
         commitMessage,
         Array.from(selected)
       )
-      toast.success("提交代码完成", {
-        description: `已提交 ${result.committed_files} 个文件`,
+      toast.success(t("toasts.commitCompleted"), {
+        description: t("toasts.committedFiles", {
+          count: result.committed_files,
+        }),
       })
       onCommitted?.()
     } catch (err) {
@@ -425,7 +430,7 @@ export function CommitWorkspace({
     } finally {
       setCommitting(false)
     }
-  }, [folderPath, onCommitted, selected])
+  }, [folderPath, onCommitted, selected, t])
 
   // --- Context menu actions ---
 
@@ -434,28 +439,28 @@ export function CommitWorkspace({
       if (!folderPath) return
       try {
         await gitAddFiles(folderPath, [file])
-        toast.success("已添加到 VCS", { description: file })
+        toast.success(t("toasts.addedToVcs"), { description: file })
         void loadStatus()
       } catch (err) {
-        toast.error("添加到 VCS 失败", { description: String(err) })
+        toast.error(t("toasts.addToVcsFailed"), { description: String(err) })
       }
     },
-    [folderPath, loadStatus]
+    [folderPath, loadStatus, t]
   )
 
   const handleDeleteFile = useCallback(
     (file: string) => {
       setConfirm({
         open: true,
-        title: "确认删除",
-        description: `确定要删除文件「${file}」吗？此操作不可恢复。`,
+        title: t("confirm.deleteTitle"),
+        description: t("confirm.deleteDescription", { file }),
         variant: "destructive",
         action: () => {
           void (async () => {
             if (!folderPath) return
             try {
               await deleteFileTreeEntry(folderPath, file)
-              toast.success("文件已删除", { description: file })
+              toast.success(t("toasts.fileDeleted"), { description: file })
               // If deleted file was being viewed, clear the diff
               if (diffFileRef.current === file) {
                 setDiffFile(null)
@@ -470,28 +475,30 @@ export function CommitWorkspace({
               })
               void loadStatus()
             } catch (err) {
-              toast.error("删除失败", { description: String(err) })
+              toast.error(t("toasts.deleteFailed"), {
+                description: String(err),
+              })
             }
           })()
         },
       })
     },
-    [folderPath, loadStatus]
+    [folderPath, loadStatus, t]
   )
 
   const handleRollbackFile = useCallback(
     (file: string) => {
       setConfirm({
         open: true,
-        title: "确认回滚",
-        description: `确定要回滚文件「${file}」到 HEAD 版本吗？未保存的修改将丢失。`,
+        title: t("confirm.rollbackTitle"),
+        description: t("confirm.rollbackDescription", { file }),
         variant: "destructive",
         action: () => {
           void (async () => {
             if (!folderPath) return
             try {
               await gitRollbackFile(folderPath, file)
-              toast.success("文件已回滚", { description: file })
+              toast.success(t("toasts.fileRolledBack"), { description: file })
               if (diffFileRef.current === file) {
                 setDiffFile(null)
                 setDiffOriginal("")
@@ -505,13 +512,15 @@ export function CommitWorkspace({
               })
               void loadStatus()
             } catch (err) {
-              toast.error("回滚失败", { description: String(err) })
+              toast.error(t("toasts.rollbackFailed"), {
+                description: String(err),
+              })
             }
           })()
         },
       })
     },
-    [folderPath, loadStatus]
+    [folderPath, loadStatus, t]
   )
 
   const closeConfirm = useCallback(() => {
@@ -631,7 +640,12 @@ export function CommitWorkspace({
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-input"
                 )}
-                aria-label={`${selected.has(node.path) ? "取消选择" : "选择"} ${node.path}`}
+                aria-label={t("aria.selectFile", {
+                  action: selected.has(node.path)
+                    ? t("actions.unselect")
+                    : t("actions.select"),
+                  path: node.path,
+                })}
               >
                 {selected.has(node.path) && <Check className="h-3 w-3" />}
               </button>
@@ -654,20 +668,28 @@ export function CommitWorkspace({
           <ContextMenuContent>
             {!isDeleted && (
               <ContextMenuItem onClick={() => handleRollbackFile(node.path)}>
-                回滚
+                {t("actions.rollback")}
               </ContextMenuItem>
             )}
             <ContextMenuItem
               variant="destructive"
               onClick={() => handleDeleteFile(node.path)}
             >
-              删除
+              {tCommon("delete")}
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
       )
     },
-    [selected, toggleFile, handleViewDiff, handleRollbackFile, handleDeleteFile]
+    [
+      selected,
+      toggleFile,
+      handleViewDiff,
+      handleRollbackFile,
+      handleDeleteFile,
+      t,
+      tCommon,
+    ]
   )
 
   const renderUntrackedNode = useCallback(
@@ -704,7 +726,12 @@ export function CommitWorkspace({
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-input"
                 )}
-                aria-label={`${selected.has(node.path) ? "取消选择" : "选择"} ${node.path}`}
+                aria-label={t("aria.selectFile", {
+                  action: selected.has(node.path)
+                    ? t("actions.unselect")
+                    : t("actions.select"),
+                  path: node.path,
+                })}
               >
                 {selected.has(node.path) && <Check className="h-3 w-3" />}
               </button>
@@ -723,20 +750,28 @@ export function CommitWorkspace({
           </ContextMenuTrigger>
           <ContextMenuContent>
             <ContextMenuItem onClick={() => handleAddToVcs(node.path)}>
-              添加到 VCS
+              {t("actions.addToVcs")}
             </ContextMenuItem>
             <ContextMenuSeparator />
             <ContextMenuItem
               variant="destructive"
               onClick={() => handleDeleteFile(node.path)}
             >
-              删除
+              {tCommon("delete")}
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
       )
     },
-    [selected, toggleFile, handleViewDiff, handleAddToVcs, handleDeleteFile]
+    [
+      selected,
+      toggleFile,
+      handleViewDiff,
+      handleAddToVcs,
+      handleDeleteFile,
+      t,
+      tCommon,
+    ]
   )
 
   const toggleTrackedGroup = useCallback(
@@ -783,14 +818,21 @@ export function CommitWorkspace({
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-input"
                 )}
-                aria-label={allSelected ? "取消选择全部文件" : "选择全部文件"}
+                aria-label={
+                  allSelected
+                    ? t("aria.unselectAllFiles")
+                    : t("aria.selectAllFiles")
+                }
               >
                 {allSelected && <Check className="h-3 w-3" />}
               </button>
               <span className="text-xs text-muted-foreground">
                 {loadingStatus
-                  ? "加载中..."
-                  : `${selected.size} / ${entries.length} 个文件`}
+                  ? t("loading")
+                  : t("selectionCount", {
+                      selected: selected.size,
+                      total: entries.length,
+                    })}
               </span>
             </div>
 
@@ -798,7 +840,7 @@ export function CommitWorkspace({
               <ScrollArea className="h-full">
                 {entries.length === 0 && !loadingStatus ? (
                   <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-                    没有改动的文件
+                    {t("emptyFiles")}
                   </div>
                 ) : (
                   <div className="space-y-3 p-2">
@@ -816,15 +858,19 @@ export function CommitWorkspace({
                             )}
                             aria-label={
                               trackedAllSelected
-                                ? "取消选择已跟踪改动"
-                                : "选择已跟踪改动"
+                                ? t("aria.unselectTracked")
+                                : t("aria.selectTracked")
                             }
                           >
                             {trackedAllSelected && (
                               <Check className="h-2.5 w-2.5" />
                             )}
                           </button>
-                          <span>已跟踪改动 ({trackedEntries.length})</span>
+                          <span>
+                            {t("trackedChanges", {
+                              count: trackedEntries.length,
+                            })}
+                          </span>
                         </div>
                         <FileTree
                           className="rounded-none border-0 bg-transparent font-sans text-sm [&>div]:p-1"
@@ -854,8 +900,8 @@ export function CommitWorkspace({
                             )}
                             aria-label={
                               untrackedAllSelected
-                                ? "取消选择未跟踪文件"
-                                : "选择未跟踪文件"
+                                ? t("aria.unselectUntracked")
+                                : t("aria.selectUntracked")
                             }
                           >
                             {untrackedAllSelected && (
@@ -872,7 +918,11 @@ export function CommitWorkspace({
                             ) : (
                               <ChevronRight className="h-3.5 w-3.5 shrink-0" />
                             )}
-                            <span>未跟踪文件 ({untrackedEntries.length})</span>
+                            <span>
+                              {t("untrackedFiles", {
+                                count: untrackedEntries.length,
+                              })}
+                            </span>
                           </button>
                         </div>
                         {untrackedOpen && (
@@ -896,17 +946,19 @@ export function CommitWorkspace({
             </div>
 
             <div className="border-t p-3">
-              <div className="mb-2 text-xs text-muted-foreground">提交消息</div>
+              <div className="mb-2 text-xs text-muted-foreground">
+                {t("commitMessage")}
+              </div>
               <Textarea
                 key={messageInputKey}
-                placeholder="输入提交信息..."
+                placeholder={t("commitMessagePlaceholder")}
                 defaultValue=""
                 onChange={handleMessageChange}
                 className="min-h-[90px] resize-y"
               />
               <div className="mt-3 flex items-center justify-end gap-2">
                 <Button variant="outline" onClick={onCancel}>
-                  取消
+                  {tCommon("cancel")}
                 </Button>
                 <Button
                   disabled={committing || !hasMessage || selected.size === 0}
@@ -915,7 +967,7 @@ export function CommitWorkspace({
                   {committing && (
                     <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                   )}
-                  提交 ({selected.size})
+                  {t("commitButton", { count: selected.size })}
                 </Button>
               </div>
             </div>
@@ -932,24 +984,24 @@ export function CommitWorkspace({
             {!diffFile ? (
               <>
                 <div className="flex h-9 items-center gap-3 border-b bg-muted/50 px-3 text-xs text-muted-foreground">
-                  <span className="font-medium">HEAD</span>
+                  <span className="font-medium">{t("head")}</span>
                   <span className="text-muted-foreground/60">↔</span>
-                  <span className="font-medium">Working Tree</span>
+                  <span className="font-medium">{t("workingTree")}</span>
                 </div>
                 <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-muted-foreground">
-                  点击文件名查看差异
+                  {t("clickFileToDiff")}
                 </div>
               </>
             ) : loadingDiff ? (
               <>
                 <div className="flex h-9 items-center gap-3 border-b bg-muted/50 px-3 text-xs text-muted-foreground">
-                  <span className="font-medium">HEAD</span>
+                  <span className="font-medium">{t("head")}</span>
                   <span className="text-muted-foreground/60">↔</span>
-                  <span className="font-medium">Working Tree</span>
+                  <span className="font-medium">{t("workingTree")}</span>
                 </div>
                 <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-muted-foreground">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  加载差异...
+                  {t("loadingDiff")}
                 </div>
               </>
             ) : (
@@ -957,8 +1009,8 @@ export function CommitWorkspace({
                 key={diffFile}
                 original={diffOriginal}
                 modified={diffModified}
-                originalLabel="HEAD"
-                modifiedLabel="Working Tree"
+                originalLabel={t("head")}
+                modifiedLabel={t("workingTree")}
                 language={diffLanguage}
                 className="h-full [&>div:first-child]:h-9 [&>div:first-child]:py-0"
               />
@@ -981,14 +1033,14 @@ export function CommitWorkspace({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               variant={
                 confirm.variant === "destructive" ? "destructive" : "default"
               }
               onClick={executeConfirmAction}
             >
-              确认
+              {tCommon("confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

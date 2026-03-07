@@ -3,6 +3,7 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event"
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { ChevronDown, Play, Plus, Square } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -40,6 +41,7 @@ function setSelectedCommandId(folderId: number, cmdId: number) {
 }
 
 export function CommandDropdown() {
+  const t = useTranslations("Folder.commandDropdown")
   const { folder } = useFolderContext()
   const { createTerminalWithCommand } = useTerminalContext()
   const [commands, setCommands] = useState<FolderCommand[]>([])
@@ -273,7 +275,7 @@ export function CommandDropdown() {
 
   if (!folder) return null
 
-  // No commands → show "Add Command"
+  // No commands → show add command button
   if (commands.length === 0) {
     return (
       <>
@@ -285,7 +287,7 @@ export function CommandDropdown() {
           disabled={bootstrapping}
         >
           <Plus className="h-3 w-3" />
-          {bootstrapping ? "Loading..." : "Add Command"}
+          {bootstrapping ? t("loading") : t("addCommand")}
         </Button>
         <CommandManageDialog
           open={manageOpen}
@@ -326,7 +328,7 @@ export function CommandDropdown() {
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setManageOpen(true)}>
-              Manage Commands...
+              {t("manageCommands")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -341,8 +343,8 @@ export function CommandDropdown() {
           onClick={handleRunOrStop}
           title={
             isActiveCommandRunning
-              ? `Stop: ${activeCmd?.command}`
-              : `Run: ${activeCmd?.command}`
+              ? t("stopCommandTitle", { command: activeCmd?.command ?? "" })
+              : t("runCommandTitle", { command: activeCmd?.command ?? "" })
           }
         >
           {isActiveCommandRunning ? (

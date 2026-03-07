@@ -57,6 +57,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -106,6 +107,8 @@ export function BranchDropdown({
   parentBranch,
   onBranchChange,
 }: BranchDropdownProps) {
+  const t = useTranslations("Folder.branchDropdown")
+  const tCommon = useTranslations("Folder.common")
   const { folder } = useFolderContext()
   const folderPath = folder?.path ?? ""
   const { addTask, updateTask, removeTask } = useTaskContext()
@@ -142,8 +145,10 @@ export function BranchDropdown({
       "folder://git-commit-succeeded",
       (event) => {
         if (event.payload.folder_id !== folder.id) return
-        toast.success("提交代码完成", {
-          description: `已提交 ${event.payload.committed_files} 个文件`,
+        toast.success(t("toasts.commitCodeCompleted"), {
+          description: t("toasts.committedFiles", {
+            count: event.payload.committed_files,
+          }),
         })
         onBranchChange()
       }
@@ -158,7 +163,7 @@ export function BranchDropdown({
     return () => {
       if (unlisten) unlisten()
     }
-  }, [folder, onBranchChange])
+  }, [folder, onBranchChange, t])
 
   async function runGitTask<T>(
     label: string,
@@ -175,7 +180,7 @@ export function BranchDropdown({
       updateTask(taskId, { status: "completed" })
       onBranchChange()
       toast.success(
-        `${label} 完成`,
+        t("toasts.taskCompleted", { label }),
         successDescription
           ? {
               description: successDescription,
@@ -184,8 +189,9 @@ export function BranchDropdown({
       )
     } catch (err) {
       removeTask(taskId)
-      pushAlert("error", `${label}失败`, String(err))
-      toast.error(`${label} 失败`, { description: String(err) })
+      const errorTitle = t("toasts.taskFailed", { label })
+      pushAlert("error", errorTitle, String(err))
+      toast.error(errorTitle, { description: String(err) })
     } finally {
       setLoading(false)
     }
@@ -220,7 +226,9 @@ export function BranchDropdown({
     if (!name) return
     setNewBranchOpen(false)
     setNewBranchName("")
-    await runGitTask(`新建分支 ${name}`, () => gitNewBranch(folderPath, name))
+    await runGitTask(t("tasks.newBranch", { name }), () =>
+      gitNewBranch(folderPath, name)
+    )
   }
 
   function handleOpenWorktreeDialog() {
@@ -254,7 +262,7 @@ export function BranchDropdown({
     const wtPath = worktreePath.trim()
     if (!name || !wtPath) return
     setWorktreeOpen(false)
-    await runGitTask(`新建工作树 ${name}`, async () => {
+    await runGitTask(t("tasks.newWorktree", { name }), async () => {
       await gitWorktreeAdd(folderPath, name, wtPath)
       await openFolderWindow(wtPath)
       await setFolderParentBranch(wtPath, branch)
@@ -268,7 +276,7 @@ export function BranchDropdown({
 
   async function handleCheckout(branchName: string) {
     setDropdownOpen(false)
-    await runGitTask(`切换到 ${branchName}`, () =>
+    await runGitTask(t("tasks.checkoutTo", { branchName }), () =>
       gitCheckout(folderPath, branchName)
     )
   }
@@ -276,7 +284,7 @@ export function BranchDropdown({
   async function handleCheckoutRemote(remoteBranch: string) {
     const localName = remoteBranch.replace(/^[^/]+\//, "")
     setDropdownOpen(false)
-    await runGitTask(`切换到 ${localName}`, () =>
+    await runGitTask(t("tasks.checkoutTo", { branchName: localName }), () =>
       gitCheckout(folderPath, localName)
     )
   }
@@ -289,23 +297,23 @@ export function BranchDropdown({
     switch (type) {
       case "merge":
         await runGitTask(
-          `合并 ${branchName}`,
+          t("tasks.mergeBranch", { branchName }),
           () => gitMerge(folderPath, branchName),
           (result) => {
             if (result.merged_commits === 0) {
-              return `${branchName} 没有新的提交`
+              return t("toasts.mergeNoNewCommits", { branchName })
             }
-            return `已合并 ${result.merged_commits} 个提交`
+            return t("toasts.mergedCommits", { count: result.merged_commits })
           }
         )
         break
       case "rebase":
-        await runGitTask(`变基到 ${branchName}`, () =>
+        await runGitTask(t("tasks.rebaseTo", { branchName }), () =>
           gitRebase(folderPath, branchName)
         )
         break
       case "delete":
-        await runGitTask(`删除分支 ${branchName}`, () =>
+        await runGitTask(t("tasks.deleteBranch", { branchName }), () =>
           gitDeleteBranch(folderPath, branchName)
         )
         break
@@ -316,11 +324,11 @@ export function BranchDropdown({
     if (!confirmAction) return ""
     switch (confirmAction.type) {
       case "merge":
-        return "合并分支"
+        return t("confirm.mergeTitle")
       case "rebase":
-        return "变基分支"
+        return t("confirm.rebaseTitle")
       case "delete":
-        return "删除分支"
+        return t("confirm.deleteTitle")
     }
   }
 
@@ -328,11 +336,19 @@ export function BranchDropdown({
     if (!confirmAction) return ""
     switch (confirmAction.type) {
       case "merge":
-        return `确定将 ${confirmAction.branchName} 合并到当前分支 ${branch} 吗？`
+        return t("confirm.mergeDescription", {
+          branchName: confirmAction.branchName,
+          currentBranch: branch ?? "-",
+        })
       case "rebase":
-        return `确定将当前分支 ${branch} 变基到 ${confirmAction.branchName} 吗？`
+        return t("confirm.rebaseDescription", {
+          currentBranch: branch ?? "-",
+          branchName: confirmAction.branchName,
+        })
       case "delete":
-        return `确定删除分支 ${confirmAction.branchName} 吗？此操作不可恢复。`
+        return t("confirm.deleteDescription", {
+          branchName: confirmAction.branchName,
+        })
     }
   }
 
@@ -351,7 +367,7 @@ export function BranchDropdown({
         >
           <BranchIcon className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{b}</span>
-          <span className="ml-auto text-xs">当前</span>
+          <span className="ml-auto text-xs">{t("current")}</span>
         </div>
       )
     }
@@ -393,7 +409,7 @@ export function BranchDropdown({
             }}
           >
             <GitBranch className="h-3.5 w-3.5" />
-            切换到此分支
+            {t("switchToBranch")}
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => {
@@ -401,7 +417,11 @@ export function BranchDropdown({
               setConfirmAction({ type: "merge", branchName: b })
             }}
           >
-            <GitMerge className="h-3.5 w-3.5" />将 {b} 合并到 {branch}
+            <GitMerge className="h-3.5 w-3.5" />
+            {t("mergeBranchIntoCurrent", {
+              branchName: b,
+              currentBranch: branch ?? "-",
+            })}
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => {
@@ -409,8 +429,11 @@ export function BranchDropdown({
               setConfirmAction({ type: "rebase", branchName: b })
             }}
           >
-            <GitPullRequestArrow className="h-3.5 w-3.5" />将 {branch} 变基到{" "}
-            {b}
+            <GitPullRequestArrow className="h-3.5 w-3.5" />
+            {t("rebaseCurrentToBranch", {
+              currentBranch: branch ?? "-",
+              branchName: b,
+            })}
           </DropdownMenuItem>
           {!isRemote && (
             <>
@@ -423,7 +446,7 @@ export function BranchDropdown({
                 }}
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                删除分支
+                {t("deleteBranch")}
               </DropdownMenuItem>
             </>
           )}
@@ -438,7 +461,7 @@ export function BranchDropdown({
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-1 text-sm tracking-tight hover:text-foreground/80 transition-colors outline-none cursor-default">
             <GitFork className="h-3 w-3 shrink-0" />
-            <span className="truncate">版本控制</span>
+            <span className="truncate">{t("versionControl")}</span>
             <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
           </button>
         </DropdownMenuTrigger>
@@ -446,11 +469,11 @@ export function BranchDropdown({
           <DropdownMenuItem
             disabled={loading}
             onSelect={() =>
-              runGitTask("初始化 Git 仓库", () => gitInit(folderPath))
+              runGitTask(t("tasks.initGitRepo"), () => gitInit(folderPath))
             }
           >
             <GitBranch className="h-3.5 w-3.5" />
-            初始化 Git 仓库
+            {t("initGitRepo")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -473,28 +496,30 @@ export function BranchDropdown({
               disabled={loading}
               onSelect={() =>
                 runGitTask(
-                  "更新代码",
+                  t("tasks.pullCode"),
                   () => gitPull(folderPath),
                   (result) => {
                     if (result.updated_files === 0) {
-                      return "所有文件均为最新版本"
+                      return t("toasts.allFilesUpToDate")
                     }
-                    return `已更新 ${result.updated_files} 个文件`
+                    return t("toasts.updatedFiles", {
+                      count: result.updated_files,
+                    })
                   }
                 )
               }
             >
               <ArrowDownToLine className="h-3.5 w-3.5" />
-              更新代码
+              {t("pullCode")}
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={loading}
               onSelect={() =>
-                runGitTask("获取信息", () => gitFetch(folderPath))
+                runGitTask(t("tasks.fetchInfo"), () => gitFetch(folderPath))
               }
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              提取远程分支
+              {t("fetchRemoteBranches")}
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
@@ -505,37 +530,42 @@ export function BranchDropdown({
                 if (!folder) return
                 setDropdownOpen(false)
                 openCommitWindow(folder.id).catch((err) => {
-                  pushAlert("error", "打开提交窗口失败", String(err))
-                  toast.error("打开提交窗口失败", { description: String(err) })
+                  const title = t("toasts.openCommitWindowFailed")
+                  pushAlert("error", title, String(err))
+                  toast.error(title, { description: String(err) })
                 })
               }}
             >
               <GitCommitHorizontal className="h-3.5 w-3.5" />
-              提交代码...
+              {t("openCommitWindow")}
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={loading}
               onSelect={() =>
                 runGitTask(
-                  "推送代码",
+                  t("tasks.pushCode"),
                   () => gitPush(folderPath),
                   (result) => {
                     if (result.upstream_set) {
                       if (result.pushed_commits === 0) {
-                        return "已设置远程跟踪分支"
+                        return t("toasts.upstreamSet")
                       }
-                      return `已设置远程跟踪分支并推送 ${result.pushed_commits} 个提交`
+                      return t("toasts.upstreamSetAndPushed", {
+                        count: result.pushed_commits,
+                      })
                     }
                     if (result.pushed_commits === 0) {
-                      return "没有可推送的提交"
+                      return t("toasts.noCommitsToPush")
                     }
-                    return `已推送 ${result.pushed_commits} 个提交`
+                    return t("toasts.pushedCommits", {
+                      count: result.pushed_commits,
+                    })
                   }
                 )
               }
             >
               <Upload className="h-3.5 w-3.5" />
-              推送...
+              {t("pushCode")}
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
@@ -548,14 +578,14 @@ export function BranchDropdown({
               }}
             >
               <GitBranchPlus className="h-3.5 w-3.5" />
-              新建分支...
+              {t("newBranch")}
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={loading}
               onSelect={handleOpenWorktreeDialog}
             >
               <FolderGit2 className="h-3.5 w-3.5" />
-              新建工作树...
+              {t("newWorktree")}
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
@@ -563,20 +593,20 @@ export function BranchDropdown({
             <DropdownMenuItem
               disabled={loading}
               onSelect={() =>
-                runGitTask("贮藏更改", () => gitStash(folderPath))
+                runGitTask(t("tasks.stashChanges"), () => gitStash(folderPath))
               }
             >
               <Archive className="h-3.5 w-3.5" />
-              贮藏更改
+              {t("stashChanges")}
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={loading}
               onSelect={() =>
-                runGitTask("取消贮藏", () => gitStashPop(folderPath))
+                runGitTask(t("tasks.stashPop"), () => gitStashPop(folderPath))
               }
             >
               <ArchiveRestore className="h-3.5 w-3.5" />
-              取消贮藏...
+              {t("stashPop")}
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
@@ -589,11 +619,13 @@ export function BranchDropdown({
               <Collapsible open={localOpen} onOpenChange={setLocalOpen}>
                 <CollapsibleTrigger className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground select-none outline-hidden">
                   <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform [[data-state=open]>&]:rotate-90" />
-                  本地分支 ({branchList.local.length})
+                  {t("localBranches", { count: branchList.local.length })}
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   {branchList.local.length === 0 ? (
-                    <DropdownMenuItem disabled>无本地分支</DropdownMenuItem>
+                    <DropdownMenuItem disabled>
+                      {t("noLocalBranches")}
+                    </DropdownMenuItem>
                   ) : (
                     branchList.local.map((b) => renderBranchItem(b, false))
                   )}
@@ -603,11 +635,13 @@ export function BranchDropdown({
               <Collapsible open={remoteOpen} onOpenChange={setRemoteOpen}>
                 <CollapsibleTrigger className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground select-none outline-hidden">
                   <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform [[data-state=open]>&]:rotate-90" />
-                  远程分支 ({branchList.remote.length})
+                  {t("remoteBranches", { count: branchList.remote.length })}
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   {branchList.remote.length === 0 ? (
-                    <DropdownMenuItem disabled>无远程分支</DropdownMenuItem>
+                    <DropdownMenuItem disabled>
+                      {t("noRemoteBranches")}
+                    </DropdownMenuItem>
                   ) : (
                     branchList.remote.map((b) => renderBranchItem(b, true))
                   )}
@@ -623,7 +657,7 @@ export function BranchDropdown({
           className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-orange-500 dark:text-orange-400 hover:bg-accent hover:text-orange-600 dark:hover:text-orange-300 transition-colors cursor-default select-none"
           disabled={loading}
           onClick={handleMergeParent}
-          title={`当前分支从 ${parentBranch} 创建，点击合并 ${parentBranch} 到当前分支`}
+          title={t("parentBranchHint", { parentBranch })}
         >
           <ArrowLeftRight className="h-3 w-3 shrink-0" />
           <span className="truncate max-w-32">{parentBranch}</span>
@@ -644,14 +678,14 @@ export function BranchDropdown({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               variant={
                 confirmAction?.type === "delete" ? "destructive" : "default"
               }
               onClick={handleConfirm}
             >
-              确定
+              {tCommon("confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -660,13 +694,13 @@ export function BranchDropdown({
       <Dialog open={newBranchOpen} onOpenChange={setNewBranchOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>新建分支</DialogTitle>
+            <DialogTitle>{t("dialogs.newBranchTitle")}</DialogTitle>
             <DialogDescription>
-              从当前分支 {branch} 创建新分支
+              {t("dialogs.newBranchDescription", { branch: branch ?? "-" })}
             </DialogDescription>
           </DialogHeader>
           <Input
-            placeholder="分支名称"
+            placeholder={t("dialogs.branchNamePlaceholder")}
             value={newBranchName}
             onChange={(e) => setNewBranchName(e.target.value)}
             onKeyDown={(e) => {
@@ -677,13 +711,13 @@ export function BranchDropdown({
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewBranchOpen(false)}>
-              取消
+              {tCommon("cancel")}
             </Button>
             <Button
               disabled={!newBranchName.trim() || loading}
               onClick={handleNewBranch}
             >
-              创建
+              {tCommon("create")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -692,17 +726,17 @@ export function BranchDropdown({
       <Dialog open={worktreeOpen} onOpenChange={setWorktreeOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>新建工作树</DialogTitle>
+            <DialogTitle>{t("dialogs.newWorktreeTitle")}</DialogTitle>
             <DialogDescription>
-              从当前分支 {branch} 创建新的工作树
+              {t("dialogs.newWorktreeDescription", { branch: branch ?? "-" })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="wt-branch">分支名称</Label>
+              <Label htmlFor="wt-branch">{t("dialogs.branchNameLabel")}</Label>
               <Input
                 id="wt-branch"
-                placeholder="分支名称"
+                placeholder={t("dialogs.branchNamePlaceholder")}
                 value={worktreeBranchName}
                 onChange={(e) => handleWorktreeBranchChange(e.target.value)}
                 onKeyDown={(e) => {
@@ -713,11 +747,11 @@ export function BranchDropdown({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="wt-path">工作树路径</Label>
+              <Label htmlFor="wt-path">{t("dialogs.worktreePathLabel")}</Label>
               <div className="flex gap-2">
                 <Input
                   id="wt-path"
-                  placeholder="工作树路径"
+                  placeholder={t("dialogs.worktreePathPlaceholder")}
                   value={worktreePath}
                   onChange={(e) => setWorktreePath(e.target.value)}
                   className="flex-1"
@@ -734,7 +768,7 @@ export function BranchDropdown({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWorktreeOpen(false)}>
-              取消
+              {tCommon("cancel")}
             </Button>
             <Button
               disabled={
@@ -742,7 +776,7 @@ export function BranchDropdown({
               }
               onClick={handleNewWorktree}
             >
-              创建
+              {tCommon("create")}
             </Button>
           </DialogFooter>
         </DialogContent>

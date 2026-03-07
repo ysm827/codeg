@@ -12,6 +12,7 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event"
 import { revealItemInDir } from "@tauri-apps/plugin-opener"
 import ignore from "ignore"
 import { Check, ChevronRight } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { useFolderContext } from "@/contexts/folder-context"
 import { useAuxPanelContext } from "@/contexts/aux-panel-context"
@@ -106,14 +107,6 @@ function baseName(path: string): string {
 
 const FILE_TREE_ROOT_PATH = "__workspace_root__"
 const GITIGNORE_MUTED_CLASS = "text-muted-foreground/55"
-
-function getSystemExplorerLabel(): string {
-  if (typeof navigator === "undefined") return "在文件管理器打开"
-  const platform = `${navigator.platform} ${navigator.userAgent}`.toLowerCase()
-  if (platform.includes("mac")) return "在访达打开"
-  if (platform.includes("win")) return "在资源管理器打开"
-  return "在文件管理器打开"
-}
 
 interface FileActionTarget {
   kind: "file" | "dir"
@@ -447,14 +440,26 @@ function RenderNode({
   onRequestDelete,
   onRefresh,
 }: RenderNodeProps) {
+  const t = useTranslations("Folder.fileTreeTab")
+  const tCommon = useTranslations("Folder.common")
   const isGitignoreIgnored =
     ancestorGitignoreIgnored || gitignoreIgnoredPaths.has(node.path)
+
+  const systemExplorerLabel =
+    typeof navigator === "undefined"
+      ? t("openInFileManager")
+      : (() => {
+          const platform =
+            `${navigator.platform} ${navigator.userAgent}`.toLowerCase()
+          if (platform.includes("mac")) return t("openInFinder")
+          if (platform.includes("win")) return t("openInExplorer")
+          return t("openInFileManager")
+        })()
 
   if (node.kind === "file") {
     const gitStatusCode = gitStatusByPath.get(node.path)
     const absolutePath = joinFsPath(workspacePath, node.path)
     const dirPath = parentDir(absolutePath)
-    const systemExplorerLabel = getSystemExplorerLabel()
     const isGitMenuDisabled = !gitEnabled || isGitignoreIgnored
 
     const handleAttachToSession = () => {
@@ -470,7 +475,7 @@ function RenderNode({
         await revealItemInDir(absolutePath)
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
-        toast.error("打开目录失败", { description: message })
+        toast.error(t("toasts.openDirectoryFailed"), { description: message })
       }
     }
 
@@ -489,17 +494,17 @@ function RenderNode({
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onSelect={() => onOpenFilePreview(node.path)}>
-            打开文件
+            {tCommon("openFile")}
           </ContextMenuItem>
           <ContextMenuItem
             onSelect={() => void handleAttachToSession()}
             disabled={!activeSessionTabId}
           >
-            附加到当前会话
+            {t("attachToCurrentSession")}
           </ContextMenuItem>
           <ContextMenuSub>
             <ContextMenuSubTrigger disabled={isGitMenuDisabled}>
-              Git
+              {t("git")}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent>
               <ContextMenuItem
@@ -509,35 +514,37 @@ function RenderNode({
                   classifyGitFileState(gitStatusCode ?? "") !== "untracked"
                 }
               >
-                添加到VCS
+                {t("actions.addToVcs")}
               </ContextMenuItem>
               <ContextMenuItem
                 onSelect={() => onOpenFileDiff(node.path)}
                 disabled={isGitMenuDisabled}
               >
-                查看差异
+                {tCommon("viewDiff")}
               </ContextMenuItem>
               <ContextMenuItem
                 onSelect={() => onRequestCompareWithBranch(node)}
                 disabled={isGitMenuDisabled}
               >
-                与分支比较...
+                {t("compareWithBranch")}
               </ContextMenuItem>
               <ContextMenuItem
                 variant="destructive"
                 onSelect={() => onRequestRollback(node)}
                 disabled={isGitMenuDisabled}
               >
-                回滚
+                {t("actions.rollback")}
               </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
           <ContextMenuItem onSelect={() => onRequestRename(node)}>
-            重命名
+            {tCommon("rename")}
           </ContextMenuItem>
-          <ContextMenuItem onSelect={onRefresh}>从磁盘重新加载</ContextMenuItem>
+          <ContextMenuItem onSelect={onRefresh}>
+            {t("reloadFromDisk")}
+          </ContextMenuItem>
           <ContextMenuSub>
-            <ContextMenuSubTrigger>打开于</ContextMenuSubTrigger>
+            <ContextMenuSubTrigger>{t("openIn")}</ContextMenuSubTrigger>
             <ContextMenuSubContent>
               <ContextMenuItem
                 onSelect={() => void handleOpenInSystemExplorer()}
@@ -547,7 +554,7 @@ function RenderNode({
               <ContextMenuItem
                 onSelect={() => void onOpenDirInTerminal(dirPath, node.name)}
               >
-                在终端打开
+                {t("openInTerminal")}
               </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
@@ -555,7 +562,7 @@ function RenderNode({
             onSelect={() => onRequestDelete(node)}
             variant="destructive"
           >
-            删除
+            {tCommon("delete")}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -563,7 +570,6 @@ function RenderNode({
   }
 
   const absolutePath = joinFsPath(workspacePath, node.path)
-  const systemExplorerLabel = getSystemExplorerLabel()
   const dirHasChanges = !isGitignoreIgnored && gitChangedDirPaths.has(node.path)
   const isGitMenuDisabled = !gitEnabled || isGitignoreIgnored
   const shouldRenderChildren = expandedPaths.has(node.path)
@@ -573,7 +579,7 @@ function RenderNode({
       await revealItemInDir(absolutePath)
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      toast.error("打开目录失败", { description: message })
+      toast.error(t("toasts.openDirectoryFailed"), { description: message })
     }
   }
 
@@ -623,41 +629,41 @@ function RenderNode({
       <ContextMenuContent>
         <ContextMenuSub>
           <ContextMenuSubTrigger disabled={isGitMenuDisabled}>
-            Git
+            {t("git")}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
             <ContextMenuItem
               onSelect={() => onRequestAddToVcs(node)}
               disabled={isGitMenuDisabled}
             >
-              添加到VCS
+              {t("actions.addToVcs")}
             </ContextMenuItem>
             <ContextMenuItem
               onSelect={() => onOpenDirDiff(node.path)}
               disabled={isGitMenuDisabled}
             >
-              查看差异
+              {tCommon("viewDiff")}
             </ContextMenuItem>
             <ContextMenuItem
               onSelect={() => onRequestCompareWithBranch(node)}
               disabled={isGitMenuDisabled}
             >
-              与分支比较...
+              {t("compareWithBranch")}
             </ContextMenuItem>
             <ContextMenuItem
               variant="destructive"
               onSelect={() => onRequestRollback(node)}
               disabled={isGitMenuDisabled}
             >
-              回滚
+              {t("actions.rollback")}
             </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
         <ContextMenuItem onSelect={() => onRequestRename(node)}>
-          重命名
+          {tCommon("rename")}
         </ContextMenuItem>
         <ContextMenuSub>
-          <ContextMenuSubTrigger>打开于</ContextMenuSubTrigger>
+          <ContextMenuSubTrigger>{t("openIn")}</ContextMenuSubTrigger>
           <ContextMenuSubContent>
             <ContextMenuItem
               onSelect={() => void handleOpenDirInSystemExplorer()}
@@ -667,16 +673,18 @@ function RenderNode({
             <ContextMenuItem
               onSelect={() => void onOpenDirInTerminal(absolutePath, node.name)}
             >
-              在终端打开
+              {t("openInTerminal")}
             </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
-        <ContextMenuItem onSelect={onRefresh}>从磁盘重新加载</ContextMenuItem>
+        <ContextMenuItem onSelect={onRefresh}>
+          {t("reloadFromDisk")}
+        </ContextMenuItem>
         <ContextMenuItem
           onSelect={() => onRequestDelete(node)}
           variant="destructive"
         >
-          删除
+          {tCommon("delete")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -684,6 +692,8 @@ function RenderNode({
 }
 
 export function FileTreeTab() {
+  const t = useTranslations("Folder.fileTreeTab")
+  const tCommon = useTranslations("Folder.common")
   const { activeTab } = useAuxPanelContext()
   const { folder } = useFolderContext()
   const { tabs, activeTabId } = useTabContext()
@@ -1095,13 +1105,13 @@ export function FileTreeTab() {
 
   const handleOpenDirInTerminal = useCallback(
     async (dirPath: string, fileName: string) => {
-      const terminalTitle = `Terminal · ${baseName(fileName)}`
+      const terminalTitle = t("terminalTitle", { name: baseName(fileName) })
       const terminalId = await createTerminalInDirectory(dirPath, terminalTitle)
       if (!terminalId) {
-        toast.error("无法打开内置终端")
+        toast.error(t("toasts.openBuiltinTerminalFailed"))
       }
     },
-    [createTerminalInDirectory]
+    [createTerminalInDirectory, t]
   )
 
   const handleRequestRename = useCallback((target: FileActionTarget) => {
@@ -1146,8 +1156,8 @@ export function FileTreeTab() {
           resetDirectoryGitActionDialog()
           toast.info(
             action === "add"
-              ? "该目录下没有可添加到VCS的变更文件"
-              : "该目录下没有可回滚的变更文件"
+              ? t("toasts.noAddableFilesInDir")
+              : t("toasts.noRollbackFilesInDir")
           )
           return
         }
@@ -1168,7 +1178,7 @@ export function FileTreeTab() {
         setDirectoryGitLoading(false)
       }
     },
-    [folder?.path, resetDirectoryGitActionDialog]
+    [folder?.path, resetDirectoryGitActionDialog, t]
   )
 
   const handleRequestRollback = useCallback(
@@ -1191,14 +1201,14 @@ export function FileTreeTab() {
       if (!folder?.path) return
       try {
         await gitAddFiles(folder.path, [target.path])
-        toast.success(`已添加 ${target.name} 到VCS`)
+        toast.success(t("toasts.addedToVcs", { name: target.name }))
         await fetchTree()
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
-        toast.error("添加到VCS失败", { description: message })
+        toast.error(t("toasts.addToVcsFailed"), { description: message })
       }
     },
-    [fetchTree, folder?.path, openDirectoryGitActionDialog]
+    [fetchTree, folder?.path, openDirectoryGitActionDialog, t]
   )
 
   const loadCompareBranches = useCallback(async () => {
@@ -1222,7 +1232,7 @@ export function FileTreeTab() {
           branchesResult.reason instanceof Error
             ? branchesResult.reason.message
             : String(branchesResult.reason)
-        toast.error("加载分支失败", { description: message })
+        toast.error(t("toasts.loadBranchesFailed"), { description: message })
       }
 
       if (currentBranchResult.status === "fulfilled") {
@@ -1234,11 +1244,11 @@ export function FileTreeTab() {
       setCompareBranchList({ local: [], remote: [], worktree_branches: [] })
       setCompareCurrentBranch(null)
       const message = error instanceof Error ? error.message : String(error)
-      toast.error("加载分支失败", { description: message })
+      toast.error(t("toasts.loadBranchesFailed"), { description: message })
     } finally {
       setCompareBranchLoading(false)
     }
-  }, [folder?.path])
+  }, [folder?.path, t])
 
   const handleRequestCompareWithBranch = useCallback(
     (target: FileActionTarget) => {
@@ -1433,7 +1443,10 @@ export function FileTreeTab() {
                 ? "flex h-4 w-4 shrink-0 items-center justify-center rounded border border-primary bg-primary text-primary-foreground transition-colors"
                 : "flex h-4 w-4 shrink-0 items-center justify-center rounded border border-input transition-colors"
             }
-            aria-label={`${selected ? "取消选择" : "选择"} ${node.path}`}
+            aria-label={t("aria.selectPath", {
+              action: selected ? t("actions.unselect") : t("actions.select"),
+              path: node.path,
+            })}
             disabled={directoryGitSubmitting}
           >
             {selected && <Check className="h-3 w-3" />}
@@ -1461,6 +1474,7 @@ export function FileTreeTab() {
       directoryGitSelectedPaths,
       directoryGitSubmitting,
       handleToggleDirectoryGitFile,
+      t,
     ]
   )
 
@@ -1480,11 +1494,11 @@ export function FileTreeTab() {
       await fetchTree()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      toast.error("重命名失败", { description: message })
+      toast.error(t("toasts.renameFailed"), { description: message })
     } finally {
       setRenaming(false)
     }
-  }, [fetchTree, folder?.path, renameTarget, renameValue])
+  }, [fetchTree, folder?.path, renameTarget, renameValue, t])
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!folder?.path || !deleteTarget) return
@@ -1495,27 +1509,27 @@ export function FileTreeTab() {
       await fetchTree()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      toast.error("删除失败", { description: message })
+      toast.error(t("toasts.deleteFailed"), { description: message })
     } finally {
       setDeleting(false)
     }
-  }, [deleteTarget, fetchTree, folder?.path])
+  }, [deleteTarget, fetchTree, folder?.path, t])
 
   const handleRollbackConfirm = useCallback(async () => {
     if (!folder?.path || !rollbackTarget) return
     setRollingBack(true)
     try {
       await gitRollbackFile(folder.path, rollbackTarget.path)
-      toast.success(`已回滚 ${rollbackTarget.name}`)
+      toast.success(t("toasts.rolledBack", { name: rollbackTarget.name }))
       setRollbackTarget(null)
       await fetchTree()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      toast.error("回滚失败", { description: message })
+      toast.error(t("toasts.rollbackFailed"), { description: message })
     } finally {
       setRollingBack(false)
     }
-  }, [fetchTree, folder?.path, rollbackTarget])
+  }, [fetchTree, folder?.path, rollbackTarget, t])
 
   const handleDirectoryGitActionConfirm = useCallback(async () => {
     if (!folder?.path || !directoryGitActionType) return
@@ -1528,12 +1542,20 @@ export function FileTreeTab() {
     try {
       if (directoryGitActionType === "add") {
         await gitAddFiles(folder.path, selectedPaths)
-        toast.success(`已添加 ${selectedPaths.length} 个文件到VCS`)
+        toast.success(
+          t("toasts.addedFilesToVcs", {
+            count: selectedPaths.length,
+          })
+        )
       } else {
         for (const filePath of selectedPaths) {
           await gitRollbackFile(folder.path, filePath)
         }
-        toast.success(`已回滚 ${selectedPaths.length} 个文件`)
+        toast.success(
+          t("toasts.rolledBackFiles", {
+            count: selectedPaths.length,
+          })
+        )
       }
 
       resetDirectoryGitActionDialog()
@@ -1542,7 +1564,9 @@ export function FileTreeTab() {
       const message = error instanceof Error ? error.message : String(error)
       setDirectoryGitError(message)
       toast.error(
-        directoryGitActionType === "add" ? "添加到VCS失败" : "回滚失败",
+        directoryGitActionType === "add"
+          ? t("toasts.addToVcsFailed")
+          : t("toasts.rollbackFailed"),
         {
           description: message,
         }
@@ -1556,6 +1580,7 @@ export function FileTreeTab() {
     fetchTree,
     folder?.path,
     resetDirectoryGitActionDialog,
+    t,
   ])
 
   const handleCompareBranchClick = useCallback(
@@ -1633,23 +1658,23 @@ export function FileTreeTab() {
         externalConflictPrompt.path,
         unsavedContent
       )
-      toast.success("已另存为副本", {
+      toast.success(t("toasts.savedAsCopy"), {
         description: result.path,
       })
       setExternalConflictPrompt(null)
       void fetchTree({ silent: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      toast.error("另存为副本失败", { description: message })
+      toast.error(t("toasts.saveCopyFailed"), { description: message })
     } finally {
       setSavingExternalConflictCopy(false)
     }
-  }, [externalConflictPrompt, fetchTree, folder?.path])
+  }, [externalConflictPrompt, fetchTree, folder?.path, t])
 
   const rootNodeName = useMemo(() => {
-    if (!folder?.path) return "Workspace"
+    if (!folder?.path) return t("workspace")
     return baseName(folder.path)
-  }, [folder?.path])
+  }, [folder?.path, t])
 
   useEffect(() => {
     if (!isFileTreeTabActive) return
@@ -1807,7 +1832,7 @@ export function FileTreeTab() {
         await startFileTreeWatch(rootPath)
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
-        toast.error("文件监听启动失败", { description: message })
+        toast.error(t("toasts.watchStartFailed"), { description: message })
       }
 
       try {
@@ -1915,7 +1940,7 @@ export function FileTreeTab() {
       }
       void stopFileTreeWatch(rootPath)
     }
-  }, [fetchTree, folder?.path, openFilePreview])
+  }, [fetchTree, folder?.path, openFilePreview, t])
 
   if (loading && nodes.length === 0) {
     return (
@@ -1941,7 +1966,7 @@ export function FileTreeTab() {
             void fetchTree()
           }}
         >
-          Retry
+          {t("retry")}
         </Button>
       </div>
     )
@@ -2009,7 +2034,7 @@ export function FileTreeTab() {
               void fetchTree()
             }}
           >
-            从磁盘重新加载
+            {t("reloadFromDisk")}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -2025,10 +2050,12 @@ export function FileTreeTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {renameTarget?.kind === "dir" ? "重命名目录" : "重命名文件"}
+              {renameTarget?.kind === "dir"
+                ? t("renameDialog.renameDirectory")
+                : t("renameDialog.renameFile")}
             </DialogTitle>
             <DialogDescription>
-              输入新的名称（仅名称，不含路径）。
+              {t("renameDialog.description")}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -2045,8 +2072,8 @@ export function FileTreeTab() {
               disabled={renaming}
               placeholder={
                 renameTarget?.kind === "dir"
-                  ? "new-folder-name"
-                  : "new-file-name.ext"
+                  ? t("renameDialog.placeholderDirectory")
+                  : t("renameDialog.placeholderFile")
               }
             />
             <DialogFooter>
@@ -2059,10 +2086,10 @@ export function FileTreeTab() {
                   setRenameValue("")
                 }}
               >
-                取消
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={renaming}>
-                确认
+                {tCommon("confirm")}
               </Button>
             </DialogFooter>
           </form>
@@ -2079,19 +2106,29 @@ export function FileTreeTab() {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {directoryGitActionType === "add" ? "添加到VCS" : "回滚"}
+              {directoryGitActionType === "add"
+                ? t("actions.addToVcs")
+                : t("actions.rollback")}
             </DialogTitle>
             <DialogDescription>
               {directoryGitActionTarget
-                ? `选择目录 ${directoryGitActionTarget.path} 下要${directoryGitActionType === "add" ? "添加到VCS" : "回滚"}的文件。`
-                : "选择要操作的文件。"}
+                ? directoryGitActionType === "add"
+                  ? t("directoryDialog.descriptionAdd", {
+                      path: directoryGitActionTarget.path,
+                    })
+                  : t("directoryDialog.descriptionRollback", {
+                      path: directoryGitActionTarget.path,
+                    })
+                : t("directoryDialog.descriptionFallback")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2 text-xs">
               <span className="text-muted-foreground">
-                已选择 {directoryGitSelectedPaths.size} /{" "}
-                {directoryGitAllFilePaths.length} 个文件
+                {t("directoryDialog.selectionCount", {
+                  selected: directoryGitSelectedPaths.size,
+                  total: directoryGitAllFilePaths.length,
+                })}
               </span>
               <Button
                 type="button"
@@ -2100,13 +2137,15 @@ export function FileTreeTab() {
                 disabled={directoryGitLoading || directoryGitSubmitting}
                 onClick={handleToggleDirectoryGitSelectAll}
               >
-                {directoryGitAllSelected ? "取消全选" : "全选"}
+                {directoryGitAllSelected
+                  ? t("directoryDialog.unselectAll")
+                  : t("directoryDialog.selectAll")}
               </Button>
             </div>
             <div className="max-h-80 overflow-auto rounded-md border">
               {directoryGitLoading ? (
                 <div className="py-8 text-center text-xs text-muted-foreground">
-                  正在加载目录变更...
+                  {t("directoryDialog.loadingCandidates")}
                 </div>
               ) : directoryGitError ? (
                 <div className="p-3 text-xs text-destructive">
@@ -2132,7 +2171,7 @@ export function FileTreeTab() {
                 </FileTree>
               ) : (
                 <div className="py-8 text-center text-xs text-muted-foreground">
-                  没有可操作的文件
+                  {t("directoryDialog.noOperableFiles")}
                 </div>
               )}
             </div>
@@ -2143,7 +2182,7 @@ export function FileTreeTab() {
                 disabled={directoryGitSubmitting}
                 onClick={resetDirectoryGitActionDialog}
               >
-                取消
+                {tCommon("cancel")}
               </Button>
               <Button
                 type="button"
@@ -2161,7 +2200,9 @@ export function FileTreeTab() {
                   void handleDirectoryGitActionConfirm()
                 }}
               >
-                {directoryGitActionType === "add" ? "添加到VCS" : "回滚"}
+                {directoryGitActionType === "add"
+                  ? t("actions.addToVcs")
+                  : t("actions.rollback")}
               </Button>
             </DialogFooter>
           </div>
@@ -2179,29 +2220,35 @@ export function FileTreeTab() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>与分支比较</DialogTitle>
+            <DialogTitle>{t("compareDialog.title")}</DialogTitle>
             <DialogDescription>
               {compareTarget
-                ? `选择分支并与${compareTarget.kind === "dir" ? "目录" : "文件"} ${compareTarget.path} 对比`
-                : "选择要比较的分支。"}
+                ? t("compareDialog.descriptionWithTarget", {
+                    kind:
+                      compareTarget.kind === "dir"
+                        ? t("compareDialog.kindDirectory")
+                        : t("compareDialog.kindFile"),
+                    path: compareTarget.path,
+                  })
+                : t("compareDialog.descriptionFallback")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Input
               value={compareBranchFilter}
               onChange={(event) => setCompareBranchFilter(event.target.value)}
-              placeholder="过滤分支，例如 main / origin/main"
+              placeholder={t("compareDialog.filterPlaceholder")}
               autoFocus
               disabled={comparing}
             />
             <div className="text-xs text-muted-foreground">
-              单击分支即可直接比较
+              {t("compareDialog.singleClickHint")}
             </div>
             <div className="space-y-2">
               <div className="max-h-56 overflow-y-auto rounded-xl border p-2 space-y-3">
                 {compareBranchLoading ? (
                   <div className="py-6 text-center text-xs text-muted-foreground">
-                    正在加载分支...
+                    {t("compareDialog.loadingBranches")}
                   </div>
                 ) : (
                   <>
@@ -2211,7 +2258,9 @@ export function FileTreeTab() {
                     >
                       <CollapsibleTrigger className="flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground select-none outline-hidden">
                         <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform [[data-state=open]>&]:rotate-90" />
-                        最近分支 ({filteredCompareRecentBranches.length})
+                        {t("compareDialog.recentBranches", {
+                          count: filteredCompareRecentBranches.length,
+                        })}
                       </CollapsibleTrigger>
                       <CollapsibleContent className="space-y-1 pt-1">
                         {filteredCompareRecentBranches.length > 0 ? (
@@ -2232,7 +2281,7 @@ export function FileTreeTab() {
                           ))
                         ) : (
                           <div className="px-2 text-xs text-muted-foreground">
-                            无当前分支
+                            {t("compareDialog.noCurrentBranch")}
                           </div>
                         )}
                       </CollapsibleContent>
@@ -2243,7 +2292,9 @@ export function FileTreeTab() {
                     >
                       <CollapsibleTrigger className="flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground select-none outline-hidden">
                         <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform [[data-state=open]>&]:rotate-90" />
-                        本地分支 ({filteredCompareBranches.local.length})
+                        {t("compareDialog.localBranches", {
+                          count: filteredCompareBranches.local.length,
+                        })}
                       </CollapsibleTrigger>
                       <CollapsibleContent className="space-y-1 pt-1">
                         {filteredCompareBranches.local.length > 0 ? (
@@ -2264,7 +2315,7 @@ export function FileTreeTab() {
                           ))
                         ) : (
                           <div className="px-2 text-xs text-muted-foreground">
-                            无匹配分支
+                            {t("compareDialog.noMatchingBranches")}
                           </div>
                         )}
                       </CollapsibleContent>
@@ -2275,7 +2326,9 @@ export function FileTreeTab() {
                     >
                       <CollapsibleTrigger className="flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground select-none outline-hidden">
                         <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform [[data-state=open]>&]:rotate-90" />
-                        远程分支 ({filteredCompareBranches.remote.length})
+                        {t("compareDialog.remoteBranches", {
+                          count: filteredCompareBranches.remote.length,
+                        })}
                       </CollapsibleTrigger>
                       <CollapsibleContent className="space-y-1 pt-1">
                         {filteredCompareBranches.remote.length > 0 ? (
@@ -2296,7 +2349,7 @@ export function FileTreeTab() {
                           ))
                         ) : (
                           <div className="px-2 text-xs text-muted-foreground">
-                            无匹配分支
+                            {t("compareDialog.noMatchingBranches")}
                           </div>
                         )}
                       </CollapsibleContent>
@@ -2316,7 +2369,7 @@ export function FileTreeTab() {
                   setCompareCurrentBranch(null)
                 }}
               >
-                取消
+                {tCommon("cancel")}
               </Button>
             </DialogFooter>
           </div>
@@ -2332,11 +2385,13 @@ export function FileTreeTab() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>检测到外部文件变更</DialogTitle>
+            <DialogTitle>{t("externalConflictDialog.title")}</DialogTitle>
             <DialogDescription>
               {externalConflictPrompt
-                ? `文件 ${externalConflictPrompt.path} 在磁盘已发生变化，当前编辑内容尚未保存。`
-                : "当前文件在磁盘已发生变化，当前编辑内容尚未保存。"}
+                ? t("externalConflictDialog.descriptionWithPath", {
+                    path: externalConflictPrompt.path,
+                  })
+                : t("externalConflictDialog.descriptionFallback")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -2346,7 +2401,7 @@ export function FileTreeTab() {
               disabled={savingExternalConflictCopy}
               onClick={handleCompareExternalConflict}
             >
-              对比
+              {t("externalConflictDialog.compare")}
             </Button>
             <Button
               type="button"
@@ -2356,7 +2411,9 @@ export function FileTreeTab() {
                 void handleSaveExternalConflictCopy()
               }}
             >
-              {savingExternalConflictCopy ? "另存中..." : "另存为副本"}
+              {savingExternalConflictCopy
+                ? t("externalConflictDialog.savingCopy")
+                : t("externalConflictDialog.saveAsCopy")}
             </Button>
             <Button
               type="button"
@@ -2364,7 +2421,7 @@ export function FileTreeTab() {
               disabled={savingExternalConflictCopy}
               onClick={handleReloadExternalConflict}
             >
-              重载
+              {t("externalConflictDialog.reload")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2379,15 +2436,23 @@ export function FileTreeTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteConfirm.title")}</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget
-                ? `确定删除${deleteTarget.kind === "dir" ? "目录" : "文件"} "${deleteTarget.name}" 吗？此操作不可撤销。`
-                : "此操作不可撤销。"}
+                ? t("deleteConfirm.descriptionWithTarget", {
+                    kind:
+                      deleteTarget.kind === "dir"
+                        ? t("deleteConfirm.kindDirectory")
+                        : t("deleteConfirm.kindFile"),
+                    name: deleteTarget.name,
+                  })
+                : t("deleteConfirm.descriptionFallback")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>
+              {tCommon("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               disabled={deleting}
@@ -2395,7 +2460,7 @@ export function FileTreeTab() {
                 void handleDeleteConfirm()
               }}
             >
-              删除
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -2410,15 +2475,19 @@ export function FileTreeTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认回滚</AlertDialogTitle>
+            <AlertDialogTitle>{t("rollbackConfirm.title")}</AlertDialogTitle>
             <AlertDialogDescription>
               {rollbackTarget
-                ? `确定回滚文件 "${rollbackTarget.name}" 的本地修改吗？`
-                : "确定回滚该文件的本地修改吗？"}
+                ? t("rollbackConfirm.descriptionWithTarget", {
+                    name: rollbackTarget.name,
+                  })
+                : t("rollbackConfirm.descriptionFallback")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={rollingBack}>取消</AlertDialogCancel>
+            <AlertDialogCancel disabled={rollingBack}>
+              {tCommon("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               disabled={rollingBack}
@@ -2426,7 +2495,7 @@ export function FileTreeTab() {
                 void handleRollbackConfirm()
               }}
             >
-              回滚
+              {t("actions.rollback")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

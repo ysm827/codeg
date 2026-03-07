@@ -711,6 +711,317 @@
       "jumpToLine": "Jump to line {line}",
       "noParsedDiffSections": "No parsed diff sections",
       "loadingEditor": "Loading editor..."
+    },
+    "branchDropdown": {
+      "toasts": {
+        "commitCodeCompleted": "Code commit completed",
+        "committedFiles": "Committed {count, plural, one {# file} other {# files}}",
+        "taskCompleted": "{label} completed",
+        "taskFailed": "{label} failed",
+        "mergeNoNewCommits": "{branchName} has no new commits",
+        "mergedCommits": "Merged {count, plural, one {# commit} other {# commits}}",
+        "allFilesUpToDate": "All files are up to date",
+        "updatedFiles": "Updated {count, plural, one {# file} other {# files}}",
+        "openCommitWindowFailed": "Failed to open commit window",
+        "upstreamSet": "Upstream branch has been set",
+        "upstreamSetAndPushed": "Upstream branch set and pushed {count, plural, one {# commit} other {# commits}}",
+        "noCommitsToPush": "No commits to push",
+        "pushedCommits": "Pushed {count, plural, one {# commit} other {# commits}}"
+      },
+      "tasks": {
+        "newBranch": "Create branch {name}",
+        "newWorktree": "Create worktree {name}",
+        "checkoutTo": "Checkout to {branchName}",
+        "mergeBranch": "Merge {branchName}",
+        "rebaseTo": "Rebase to {branchName}",
+        "deleteBranch": "Delete branch {branchName}",
+        "initGitRepo": "Initialize Git repository",
+        "pullCode": "Pull code",
+        "fetchInfo": "Fetch info",
+        "pushCode": "Push code",
+        "stashChanges": "Stash changes",
+        "stashPop": "Pop stash"
+      },
+      "confirm": {
+        "mergeTitle": "Merge branch",
+        "rebaseTitle": "Rebase branch",
+        "deleteTitle": "Delete branch",
+        "mergeDescription": "Merge {branchName} into current branch {currentBranch}?",
+        "rebaseDescription": "Rebase current branch {currentBranch} onto {branchName}?",
+        "deleteDescription": "Delete branch {branchName}? This action cannot be undone."
+      },
+      "current": "Current",
+      "switchToBranch": "Switch to this branch",
+      "mergeBranchIntoCurrent": "Merge {branchName} into {currentBranch}",
+      "rebaseCurrentToBranch": "Rebase {currentBranch} onto {branchName}",
+      "deleteBranch": "Delete branch",
+      "versionControl": "Version Control",
+      "initGitRepo": "Initialize Git repository",
+      "pullCode": "Pull code",
+      "fetchRemoteBranches": "Fetch remote branches",
+      "openCommitWindow": "Commit code...",
+      "pushCode": "Push...",
+      "newBranch": "New branch...",
+      "newWorktree": "New worktree...",
+      "stashChanges": "Stash changes",
+      "stashPop": "Pop stash...",
+      "localBranches": "Local branches ({count, plural, one {#} other {#}})",
+      "noLocalBranches": "No local branches",
+      "remoteBranches": "Remote branches ({count, plural, one {#} other {#}})",
+      "noRemoteBranches": "No remote branches",
+      "parentBranchHint": "Current branch was created from {parentBranch}. Click to merge {parentBranch} into current branch.",
+      "dialogs": {
+        "newBranchTitle": "New branch",
+        "newBranchDescription": "Create a new branch from current branch {branch}",
+        "branchNamePlaceholder": "Branch name",
+        "newWorktreeTitle": "New worktree",
+        "newWorktreeDescription": "Create a new worktree from current branch {branch}",
+        "branchNameLabel": "Branch name",
+        "worktreePathLabel": "Worktree path",
+        "worktreePathPlaceholder": "Worktree path"
+      }
+    },
+    "commitDialog": {
+      "toasts": {
+        "commitCompleted": "Code commit completed",
+        "committedFiles": "Committed {count, plural, one {# file} other {# files}}",
+        "addedToVcs": "Added to VCS",
+        "addToVcsFailed": "Failed to add to VCS",
+        "fileDeleted": "File deleted",
+        "deleteFailed": "Delete failed",
+        "fileRolledBack": "File rolled back",
+        "rollbackFailed": "Rollback failed"
+      },
+      "confirm": {
+        "deleteTitle": "Confirm deletion",
+        "deleteDescription": "Delete file \"{file}\"? This action cannot be undone.",
+        "rollbackTitle": "Confirm rollback",
+        "rollbackDescription": "Rollback file \"{file}\" to HEAD? Unsaved changes will be lost."
+      },
+      "actions": {
+        "select": "Select",
+        "unselect": "Unselect",
+        "rollback": "Rollback",
+        "addToVcs": "Add to VCS"
+      },
+      "aria": {
+        "selectFile": "{action} {path}",
+        "unselectAllFiles": "Unselect all files",
+        "selectAllFiles": "Select all files",
+        "unselectTracked": "Unselect tracked changes",
+        "selectTracked": "Select tracked changes",
+        "unselectUntracked": "Unselect untracked files",
+        "selectUntracked": "Select untracked files"
+      },
+      "loading": "Loading...",
+      "selectionCount": "{selected} / {total} files",
+      "emptyFiles": "No changed files",
+      "trackedChanges": "Tracked changes ({count})",
+      "untrackedFiles": "Untracked files ({count})",
+      "commitMessage": "Commit message",
+      "commitMessagePlaceholder": "Enter commit message...",
+      "commitButton": "Commit ({count})",
+      "head": "HEAD",
+      "workingTree": "Working Tree",
+      "clickFileToDiff": "Click a file name to view diff",
+      "loadingDiff": "Loading diff..."
+    },
+    "gitLogTab": {
+      "filesTitle": "Files",
+      "expandAllFiles": "Expand all files",
+      "collapseAllFiles": "Collapse all files",
+      "workspace": "workspace",
+      "retry": "Retry",
+      "noCommitsFound": "No commits found",
+      "hash": "Hash",
+      "copyHash": "Copy hash",
+      "author": "Author",
+      "noFileChangeDetails": "No file change details available.",
+      "branchesTitle": "Branches",
+      "loadingBranches": "Loading branches...",
+      "noContainingBranches": "No containing branches found.",
+      "newBranch": "New branch...",
+      "viewCommitDiffAria": "View diff for commit {hash}",
+      "copyFullCommitHashAria": "Copy full commit hash {hash}",
+      "pushStatus": {
+        "pushed": "Pushed to remote",
+        "notPushed": "Not pushed to remote",
+        "unknown": "Push status unknown (no upstream configured)"
+      },
+      "time": {
+        "monthsAgo": "{count, plural, one {# month ago} other {# months ago}}",
+        "daysAgo": "{count, plural, one {# day ago} other {# days ago}}",
+        "hoursAgo": "{count, plural, one {# hour ago} other {# hours ago}}",
+        "minsAgo": "{count, plural, one {# min ago} other {# mins ago}}",
+        "justNow": "just now"
+      },
+      "toasts": {
+        "createdAndSwitchedNewBranch": "Created and switched to new branch",
+        "newBranchFromCommit": "{name} (from {shortHash})",
+        "createBranchFailed": "Failed to create branch"
+      },
+      "branchSelector": {
+        "selectBranchPlaceholder": "Select branch...",
+        "localBranches": "Local branches",
+        "current": "Current",
+        "remoteBranches": "Remote branches",
+        "refreshCommitHistory": "Refresh commit history"
+      },
+      "dialogs": {
+        "newBranchTitle": "New branch",
+        "newBranchDescription": "Create a new branch with commit {shortHash} as the latest commit.",
+        "branchNamePlaceholder": "Branch name"
+      }
+    },
+    "gitChangesTab": {
+      "workspace": "workspace",
+      "noChanges": "No local changes",
+      "trackedChanges": "Tracked changes ({count})",
+      "untrackedFiles": "Untracked files ({count})",
+      "expandTracked": "Expand tracked changes",
+      "collapseTracked": "Collapse tracked changes",
+      "expandUntracked": "Expand untracked files",
+      "collapseUntracked": "Collapse untracked files",
+      "actions": {
+        "rollback": "Rollback",
+        "addToVcs": "Add to VCS"
+      },
+      "toasts": {
+        "noAddableFilesInDir": "No changed files in this directory can be added to VCS",
+        "noRollbackFilesInDir": "No changed files in this directory can be rolled back",
+        "addedToVcs": "Added {name} to VCS",
+        "addToVcsFailed": "Failed to add to VCS",
+        "rolledBack": "Rolled back {name}",
+        "rollbackFailed": "Rollback failed",
+        "addedFilesToVcs": "Added {count, plural, one {# file} other {# files}} to VCS",
+        "rolledBackFiles": "Rolled back {count, plural, one {# file} other {# files}}"
+      },
+      "directoryDialog": {
+        "descriptionAdd": "Select files under directory {path} to add to VCS.",
+        "descriptionRollback": "Select files under directory {path} to roll back.",
+        "descriptionFallback": "Select files to proceed.",
+        "selectionCount": "Selected {selected} / {total} files",
+        "selectAll": "Select all",
+        "unselectAll": "Unselect all",
+        "loadingCandidates": "Loading directory changes...",
+        "noOperableFiles": "No operable files"
+      },
+      "rollbackConfirm": {
+        "title": "Confirm rollback",
+        "descriptionWithTarget": "Roll back local changes for {kind} \"{name}\"?",
+        "descriptionFallback": "Roll back local changes?",
+        "kindDirectory": "directory",
+        "kindFile": "file"
+      }
+    },
+    "fileTreeTab": {
+      "workspace": "Workspace",
+      "retry": "Retry",
+      "git": "Git",
+      "openInFileManager": "Open in file manager",
+      "openInFinder": "Open in Finder",
+      "openInExplorer": "Open in Explorer",
+      "attachToCurrentSession": "Attach to current session",
+      "compareWithBranch": "Compare with branch...",
+      "reloadFromDisk": "Reload from disk",
+      "openIn": "Open in",
+      "openInTerminal": "Open in terminal",
+      "actions": {
+        "select": "Select",
+        "unselect": "Unselect",
+        "rollback": "Rollback",
+        "addToVcs": "Add to VCS"
+      },
+      "aria": {
+        "selectPath": "{action} {path}"
+      },
+      "toasts": {
+        "openDirectoryFailed": "Failed to open directory",
+        "openBuiltinTerminalFailed": "Unable to open built-in terminal",
+        "noAddableFilesInDir": "No changed files in this directory can be added to VCS",
+        "noRollbackFilesInDir": "No changed files in this directory can be rolled back",
+        "addedToVcs": "Added {name} to VCS",
+        "addToVcsFailed": "Failed to add to VCS",
+        "loadBranchesFailed": "Failed to load branches",
+        "renameFailed": "Rename failed",
+        "deleteFailed": "Delete failed",
+        "rolledBack": "Rolled back {name}",
+        "rollbackFailed": "Rollback failed",
+        "addedFilesToVcs": "Added {count, plural, one {# file} other {# files}} to VCS",
+        "rolledBackFiles": "Rolled back {count, plural, one {# file} other {# files}}",
+        "savedAsCopy": "Saved as a copy",
+        "saveCopyFailed": "Failed to save as copy",
+        "watchStartFailed": "Failed to start file watch"
+      },
+      "renameDialog": {
+        "renameDirectory": "Rename directory",
+        "renameFile": "Rename file",
+        "description": "Enter a new name (name only, no path).",
+        "placeholderDirectory": "new-folder-name",
+        "placeholderFile": "new-file-name.ext"
+      },
+      "directoryDialog": {
+        "descriptionAdd": "Select files under directory {path} to add to VCS.",
+        "descriptionRollback": "Select files under directory {path} to roll back.",
+        "descriptionFallback": "Select files to proceed.",
+        "selectionCount": "Selected {selected} / {total} files",
+        "selectAll": "Select all",
+        "unselectAll": "Unselect all",
+        "loadingCandidates": "Loading directory changes...",
+        "noOperableFiles": "No operable files"
+      },
+      "compareDialog": {
+        "title": "Compare with branch",
+        "descriptionWithTarget": "Select a branch and compare with {kind} {path}",
+        "descriptionFallback": "Select a branch to compare.",
+        "kindDirectory": "directory",
+        "kindFile": "file",
+        "filterPlaceholder": "Filter branches, e.g. main / origin/main",
+        "singleClickHint": "Click a branch to compare directly",
+        "loadingBranches": "Loading branches...",
+        "recentBranches": "Recent branches ({count})",
+        "noCurrentBranch": "No current branch",
+        "localBranches": "Local branches ({count})",
+        "remoteBranches": "Remote branches ({count})",
+        "noMatchingBranches": "No matching branches"
+      },
+      "externalConflictDialog": {
+        "title": "External file changes detected",
+        "descriptionWithPath": "File {path} has changed on disk, and current edits are unsaved.",
+        "descriptionFallback": "Current file has changed on disk, and current edits are unsaved.",
+        "compare": "Compare",
+        "savingCopy": "Saving copy...",
+        "saveAsCopy": "Save as copy",
+        "reload": "Reload"
+      },
+      "deleteConfirm": {
+        "title": "Confirm deletion",
+        "descriptionWithTarget": "Delete {kind} \"{name}\"? This action cannot be undone.",
+        "descriptionFallback": "This action cannot be undone.",
+        "kindDirectory": "directory",
+        "kindFile": "file"
+      },
+      "rollbackConfirm": {
+        "title": "Confirm rollback",
+        "descriptionWithTarget": "Rollback local changes for file \"{name}\"?",
+        "descriptionFallback": "Rollback local changes for this file?"
+      },
+      "terminalTitle": "Terminal · {name}"
+    },
+    "commandDropdown": {
+      "loading": "Loading...",
+      "addCommand": "Add Command",
+      "manageCommands": "Manage Commands...",
+      "runCommandTitle": "Run: {command}",
+      "stopCommandTitle": "Stop: {command}",
+      "manageDialog": {
+        "title": "Manage Commands",
+        "empty": "No commands yet",
+        "namePlaceholder": "Name",
+        "commandPlaceholder": "Command",
+        "add": "Add",
+        "saving": "Saving..."
+      }
     }
   }
 }

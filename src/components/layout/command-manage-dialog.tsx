@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,8 @@ export function CommandManageDialog({
   commands,
   onSaved,
 }: CommandManageDialogProps) {
+  const t = useTranslations("Folder.commandDropdown.manageDialog")
+  const tCommon = useTranslations("Folder.common")
   const [drafts, setDrafts] = useState<CommandDraft[]>([])
   const [saving, setSaving] = useState(false)
 
@@ -115,13 +118,13 @@ export function CommandManageDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Manage Commands</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-72">
           <div className="space-y-2 pr-2">
             {visibleDrafts.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No commands yet
+                {t("empty")}
               </p>
             )}
             {drafts.map(
@@ -129,7 +132,7 @@ export function CommandManageDialog({
                 !draft.deleted && (
                   <div key={index} className="flex items-center gap-2">
                     <Input
-                      placeholder="Name"
+                      placeholder={t("namePlaceholder")}
                       value={draft.name}
                       onChange={(e) =>
                         updateDraft(index, "name", e.target.value)
@@ -137,7 +140,7 @@ export function CommandManageDialog({
                       className="h-8 text-sm flex-1"
                     />
                     <Input
-                      placeholder="Command"
+                      placeholder={t("commandPlaceholder")}
                       value={draft.command}
                       onChange={(e) =>
                         updateDraft(index, "command", e.target.value)
@@ -160,7 +163,7 @@ export function CommandManageDialog({
         <DialogFooter className="flex items-center justify-between sm:justify-between">
           <Button variant="outline" size="sm" onClick={addDraft}>
             <Plus className="h-3.5 w-3.5 mr-1" />
-            Add
+            {t("add")}
           </Button>
           <div className="flex gap-2">
             <Button
@@ -168,10 +171,10 @@ export function CommandManageDialog({
               size="sm"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save"}
+              {saving ? t("saving") : tCommon("save")}
             </Button>
           </div>
         </DialogFooter>

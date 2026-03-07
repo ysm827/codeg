@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react"
+import { useTranslations } from "next-intl"
 import {
   ChevronsDownUp,
   ChevronsUpDown,
@@ -83,7 +84,18 @@ import {
 import type { GitBranchList, GitLogEntry, GitLogFileChange } from "@/lib/types"
 import { toast } from "sonner"
 
-function formatRelativeTime(dateStr: string): string {
+function formatRelativeTime(
+  dateStr: string,
+  t: (
+    key:
+      | "time.monthsAgo"
+      | "time.daysAgo"
+      | "time.hoursAgo"
+      | "time.minsAgo"
+      | "time.justNow",
+    values?: { count: number }
+  ) => string
+): string {
   const date = new Date(dateStr)
   if (Number.isNaN(date.getTime())) return dateStr
 
@@ -95,13 +107,12 @@ function formatRelativeTime(dateStr: string): string {
 
   if (diffDay > 30) {
     const diffMonth = Math.floor(diffDay / 30)
-    return diffMonth === 1 ? "1 month ago" : `${diffMonth} months ago`
+    return t("time.monthsAgo", { count: diffMonth })
   }
-  if (diffDay > 0) return diffDay === 1 ? "1 day ago" : `${diffDay} days ago`
-  if (diffHour > 0)
-    return diffHour === 1 ? "1 hour ago" : `${diffHour} hours ago`
-  if (diffMin > 0) return diffMin === 1 ? "1 min ago" : `${diffMin} mins ago`
-  return "just now"
+  if (diffDay > 0) return t("time.daysAgo", { count: diffDay })
+  if (diffHour > 0) return t("time.hoursAgo", { count: diffHour })
+  if (diffMin > 0) return t("time.minsAgo", { count: diffMin })
+  return t("time.justNow", { count: 0 })
 }
 
 function parseDate(dateStr: string): Date | null {
@@ -137,14 +148,21 @@ function mapFileStatus(
   }
 }
 
-function getPushStatusMeta(pushed: boolean | null): {
+function getPushStatusMeta(
+  pushed: boolean | null,
+  labels: {
+    pushed: string
+    notPushed: string
+    unknown: string
+  }
+): {
   label: string
   icon: typeof CloudCheck
   className: string
 } {
   if (pushed === true) {
     return {
-      label: "Pushed to remote",
+      label: labels.pushed,
       icon: CloudCheck,
       className: "text-emerald-500",
     }
@@ -152,14 +170,14 @@ function getPushStatusMeta(pushed: boolean | null): {
 
   if (pushed === false) {
     return {
-      label: "Not pushed to remote",
+      label: labels.notPushed,
       icon: CloudOff,
       className: "text-amber-500",
     }
   }
 
   return {
-    label: "Push status unknown (no upstream configured)",
+    label: labels.unknown,
     icon: CircleHelp,
     className: "text-muted-foreground",
   }
@@ -348,6 +366,8 @@ function CommitFilesTree({
   ) => void
   onOpenFilePreview: (path: string) => void
 }) {
+  const t = useTranslations("Folder.gitLogTab")
+  const tCommon = useTranslations("Folder.common")
   const rootPath = "__commit_file_tree_root__"
   const treeNodes = useMemo(() => buildCommitFileTree(files), [files])
   const allDirectoryPaths = useMemo(() => {
@@ -431,14 +451,14 @@ function CommitFilesTree({
               void onOpenCommitDiff(commitHash, file.path)
             }}
           >
-            查看差异
+            {tCommon("viewDiff")}
           </ContextMenuItem>
           <ContextMenuItem
             onSelect={() => {
               void onOpenFilePreview(file.path)
             }}
           >
-            打开文件
+            {tCommon("openFile")}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -448,7 +468,7 @@ function CommitFilesTree({
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] text-muted-foreground">Files</p>
+        <p className="text-[11px] text-muted-foreground">{t("filesTitle")}</p>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -456,8 +476,10 @@ function CommitFilesTree({
             className="size-5"
             onClick={toggleExpanded}
             disabled={!canExpandAll && !canCollapseAll}
-            title={canExpandAll ? "展开全部文件" : "折叠全部文件"}
-            aria-label={canExpandAll ? "展开全部文件" : "折叠全部文件"}
+            title={canExpandAll ? t("expandAllFiles") : t("collapseAllFiles")}
+            aria-label={
+              canExpandAll ? t("expandAllFiles") : t("collapseAllFiles")
+            }
           >
             {canExpandAll ? (
               <ChevronsUpDown className="size-3.5" />
@@ -503,6 +525,7 @@ function BranchSelector({
   onRefresh: () => void
   refreshing: boolean
 }) {
+  const t = useTranslations("Folder.gitLogTab.branchSelector")
   return (
     <div className="flex items-center gap-1">
       <Select value={selectedBranch ?? ""} onValueChange={onBranchChange}>
@@ -511,12 +534,12 @@ function BranchSelector({
           className="cursor-pointer flex-1 w-full text-xs bg-input/30 hover:bg-input/50 aria-expanded:bg-muted"
         >
           <GitBranch className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <SelectValue placeholder="选择分支..." />
+          <SelectValue placeholder={t("selectBranchPlaceholder")} />
         </SelectTrigger>
         <SelectContent position="popper" sideOffset={4}>
           {branchList.local.length > 0 && (
             <SelectGroup>
-              <SelectLabel>本地分支</SelectLabel>
+              <SelectLabel>{t("localBranches")}</SelectLabel>
               {branchList.local.map((branch) => (
                 <SelectItem
                   key={`local-${branch}`}
@@ -526,7 +549,7 @@ function BranchSelector({
                   {branch}
                   {branch === currentBranch && (
                     <span className="ml-auto text-[10px] text-muted-foreground">
-                      当前
+                      {t("current")}
                     </span>
                   )}
                 </SelectItem>
@@ -537,7 +560,7 @@ function BranchSelector({
             <>
               {branchList.local.length > 0 && <SelectSeparator />}
               <SelectGroup>
-                <SelectLabel>远程分支</SelectLabel>
+                <SelectLabel>{t("remoteBranches")}</SelectLabel>
                 {branchList.remote.map((branch) => (
                   <SelectItem
                     key={`remote-${branch}`}
@@ -558,8 +581,8 @@ function BranchSelector({
         className="h-8 w-8 shrink-0 rounded-full"
         onClick={onRefresh}
         disabled={refreshing}
-        title="刷新提交记录"
-        aria-label="刷新提交记录"
+        title={t("refreshCommitHistory")}
+        aria-label={t("refreshCommitHistory")}
       >
         <RefreshCw className={`size-3.5 ${refreshing ? "animate-spin" : ""}`} />
       </Button>
@@ -568,6 +591,8 @@ function BranchSelector({
 }
 
 export function GitLogTab() {
+  const t = useTranslations("Folder.gitLogTab")
+  const tCommon = useTranslations("Folder.common")
   const { folder } = useFolderContext()
   const { openCommitDiff, openFilePreview } = useWorkspaceContext()
   const [entries, setEntries] = useState<GitLogEntry[]>([])
@@ -599,11 +624,19 @@ export function GitLogTab() {
 
   const hasBranches =
     branchList.local.length > 0 || branchList.remote.length > 0
+  const pushStatusLabels = useMemo(
+    () => ({
+      pushed: t("pushStatus.pushed"),
+      notPushed: t("pushStatus.notPushed"),
+      unknown: t("pushStatus.unknown"),
+    }),
+    [t]
+  )
   const folderName = useMemo(() => {
     const path = folder?.path ?? ""
     const parts = path.split(/[\\/]/).filter(Boolean)
-    return (parts[parts.length - 1] ?? path) || "workspace"
-  }, [folder?.path])
+    return (parts[parts.length - 1] ?? path) || t("workspace")
+  }, [folder?.path, t])
 
   const handleBranchChange = useCallback((branch: string) => {
     setSelectedBranch(branch)
@@ -728,11 +761,14 @@ export function GitLogTab() {
       setNewBranchTarget(null)
       setNewBranchName("")
       await refreshBranches(name)
-      toast.success("已创建并切换到新分支", {
-        description: `${name} (from ${newBranchTarget.shortHash})`,
+      toast.success(t("toasts.createdAndSwitchedNewBranch"), {
+        description: t("toasts.newBranchFromCommit", {
+          name,
+          shortHash: newBranchTarget.shortHash,
+        }),
       })
     } catch (error) {
-      toast.error("新建分支失败", {
+      toast.error(t("toasts.createBranchFailed"), {
         description: error instanceof Error ? error.message : String(error),
       })
     } finally {
@@ -744,6 +780,7 @@ export function GitLogTab() {
     newBranchName,
     newBranchTarget,
     refreshBranches,
+    t,
   ])
 
   useEffect(() => {
@@ -804,7 +841,7 @@ export function GitLogTab() {
               void fetchLog()
             }}
           >
-            Retry
+            {t("retry")}
           </Button>
         </div>
       </div>
@@ -825,7 +862,7 @@ export function GitLogTab() {
           />
         )}
         <div className="pt-1 text-xs text-muted-foreground">
-          No commits found
+          {t("noCommitsFound")}
         </div>
       </div>
     )
@@ -856,7 +893,10 @@ export function GitLogTab() {
             {entries.map((entry) => {
               const commitKey = entry.full_hash
               const commitDate = parseDate(entry.date)
-              const pushStatus = getPushStatusMeta(entry.pushed)
+              const pushStatus = getPushStatusMeta(
+                entry.pushed,
+                pushStatusLabels
+              )
               const PushStatusIcon = pushStatus.icon
               const commitBranches = branchesByCommit[commitKey]
               const isBranchLoading = !!branchesLoading[commitKey]
@@ -900,7 +940,7 @@ export function GitLogTab() {
                                 className="shrink-0"
                                 date={commitDate ?? new Date()}
                               >
-                                {formatRelativeTime(entry.date)}
+                                {formatRelativeTime(entry.date, t)}
                               </CommitTimestamp>
                               <CommitHash className="text-primary/70">
                                 {entry.hash}
@@ -919,8 +959,10 @@ export function GitLogTab() {
                                   entry.message
                                 )
                               }}
-                              title="查看差异"
-                              aria-label={`查看提交 ${entry.hash} 的差异`}
+                              title={tCommon("viewDiff")}
+                              aria-label={t("viewCommitDiffAria", {
+                                hash: entry.hash,
+                              })}
                             >
                               <GitCompare size={14} />
                             </Button>
@@ -930,7 +972,7 @@ export function GitLogTab() {
                           <div className="space-y-3">
                             <div className="grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-xs">
                               <span className="text-muted-foreground">
-                                Hash
+                                {t("hash")}
                               </span>
                               <span className="group/hash flex items-center gap-1 min-w-0">
                                 <code
@@ -940,14 +982,16 @@ export function GitLogTab() {
                                   {entry.full_hash}
                                 </code>
                                 <CommitCopyButton
-                                  aria-label={`Copy full commit hash ${entry.full_hash}`}
+                                  aria-label={t("copyFullCommitHashAria", {
+                                    hash: entry.full_hash,
+                                  })}
                                   className="size-5 shrink-0 opacity-0 transition-opacity group-hover/hash:opacity-100 group-focus-within/hash:opacity-100"
                                   hash={entry.full_hash}
-                                  title="Copy hash"
+                                  title={t("copyHash")}
                                 />
                               </span>
                               <span className="text-muted-foreground">
-                                Author
+                                {t("author")}
                               </span>
                               <span className="min-w-0 flex items-center gap-1">
                                 <span className="min-w-0 truncate">
@@ -974,10 +1018,10 @@ export function GitLogTab() {
                             {entry.files.length === 0 ? (
                               <div className="space-y-1">
                                 <p className="text-[11px] text-muted-foreground">
-                                  Files
+                                  {t("filesTitle")}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  No file change details available.
+                                  {t("noFileChangeDetails")}
                                 </p>
                               </div>
                             ) : (
@@ -991,11 +1035,11 @@ export function GitLogTab() {
                             )}
                             <div className="pt-3 space-y-1">
                               <p className="text-[11px] text-muted-foreground">
-                                Branches
+                                {t("branchesTitle")}
                               </p>
                               {isBranchLoading ? (
                                 <p className="text-xs text-muted-foreground">
-                                  Loading branches...
+                                  {t("loadingBranches")}
                                 </p>
                               ) : branchError ? (
                                 <p className="text-xs text-destructive">
@@ -1016,7 +1060,7 @@ export function GitLogTab() {
                                 </div>
                               ) : (
                                 <p className="text-xs text-muted-foreground">
-                                  No containing branches found.
+                                  {t("noContainingBranches")}
                                 </p>
                               )}
                             </div>
@@ -1032,7 +1076,7 @@ export function GitLogTab() {
                       }}
                     >
                       <GitBranchPlus className="h-3.5 w-3.5" />
-                      新建分支...
+                      {t("newBranch")}
                     </ContextMenuItem>
                     <ContextMenuItem
                       onSelect={() => {
@@ -1044,7 +1088,7 @@ export function GitLogTab() {
                       }}
                     >
                       <GitCompare className="h-3.5 w-3.5" />
-                      查看差异
+                      {tCommon("viewDiff")}
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
@@ -1058,7 +1102,7 @@ export function GitLogTab() {
               void fetchLog()
             }}
           >
-            刷新
+            {tCommon("refresh")}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -1074,14 +1118,15 @@ export function GitLogTab() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>新建分支</DialogTitle>
+            <DialogTitle>{t("dialogs.newBranchTitle")}</DialogTitle>
             <DialogDescription>
-              以提交 {newBranchTarget?.shortHash ?? "-"}{" "}
-              作为最后提交创建新分支。
+              {t("dialogs.newBranchDescription", {
+                shortHash: newBranchTarget?.shortHash ?? "-",
+              })}
             </DialogDescription>
           </DialogHeader>
           <Input
-            placeholder="分支名称"
+            placeholder={t("dialogs.branchNamePlaceholder")}
             value={newBranchName}
             onChange={(event) => setNewBranchName(event.target.value)}
             onKeyDown={(event) => {
@@ -1105,7 +1150,7 @@ export function GitLogTab() {
                 setNewBranchName("")
               }}
             >
-              取消
+              {tCommon("cancel")}
             </Button>
             <Button
               disabled={!newBranchName.trim() || creatingBranch}
@@ -1113,7 +1158,7 @@ export function GitLogTab() {
                 void handleCreateBranchFromCommit()
               }}
             >
-              创建并切换
+              {tCommon("createAndSwitch")}
             </Button>
           </DialogFooter>
         </DialogContent>

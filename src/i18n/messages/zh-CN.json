@@ -711,6 +711,317 @@
       "jumpToLine": "跳转到第 {line} 行",
       "noParsedDiffSections": "未解析到差异区块",
       "loadingEditor": "编辑器加载中..."
+    },
+    "branchDropdown": {
+      "toasts": {
+        "commitCodeCompleted": "提交代码完成",
+        "committedFiles": "已提交 {count} 个文件",
+        "taskCompleted": "{label} 完成",
+        "taskFailed": "{label} 失败",
+        "mergeNoNewCommits": "{branchName} 没有新的提交",
+        "mergedCommits": "已合并 {count} 个提交",
+        "allFilesUpToDate": "所有文件均为最新版本",
+        "updatedFiles": "已更新 {count} 个文件",
+        "openCommitWindowFailed": "打开提交窗口失败",
+        "upstreamSet": "已设置远程跟踪分支",
+        "upstreamSetAndPushed": "已设置远程跟踪分支并推送 {count} 个提交",
+        "noCommitsToPush": "没有可推送的提交",
+        "pushedCommits": "已推送 {count} 个提交"
+      },
+      "tasks": {
+        "newBranch": "新建分支 {name}",
+        "newWorktree": "新建工作树 {name}",
+        "checkoutTo": "切换到 {branchName}",
+        "mergeBranch": "合并 {branchName}",
+        "rebaseTo": "变基到 {branchName}",
+        "deleteBranch": "删除分支 {branchName}",
+        "initGitRepo": "初始化 Git 仓库",
+        "pullCode": "更新代码",
+        "fetchInfo": "获取信息",
+        "pushCode": "推送代码",
+        "stashChanges": "贮藏更改",
+        "stashPop": "取消贮藏"
+      },
+      "confirm": {
+        "mergeTitle": "合并分支",
+        "rebaseTitle": "变基分支",
+        "deleteTitle": "删除分支",
+        "mergeDescription": "确定将 {branchName} 合并到当前分支 {currentBranch} 吗？",
+        "rebaseDescription": "确定将当前分支 {currentBranch} 变基到 {branchName} 吗？",
+        "deleteDescription": "确定删除分支 {branchName} 吗？此操作不可恢复。"
+      },
+      "current": "当前",
+      "switchToBranch": "切换到此分支",
+      "mergeBranchIntoCurrent": "将 {branchName} 合并到 {currentBranch}",
+      "rebaseCurrentToBranch": "将 {currentBranch} 变基到 {branchName}",
+      "deleteBranch": "删除分支",
+      "versionControl": "版本控制",
+      "initGitRepo": "初始化 Git 仓库",
+      "pullCode": "更新代码",
+      "fetchRemoteBranches": "提取远程分支",
+      "openCommitWindow": "提交代码...",
+      "pushCode": "推送...",
+      "newBranch": "新建分支...",
+      "newWorktree": "新建工作树...",
+      "stashChanges": "贮藏更改",
+      "stashPop": "取消贮藏...",
+      "localBranches": "本地分支 ({count})",
+      "noLocalBranches": "无本地分支",
+      "remoteBranches": "远程分支 ({count})",
+      "noRemoteBranches": "无远程分支",
+      "parentBranchHint": "当前分支从 {parentBranch} 创建，点击合并 {parentBranch} 到当前分支",
+      "dialogs": {
+        "newBranchTitle": "新建分支",
+        "newBranchDescription": "从当前分支 {branch} 创建新分支",
+        "branchNamePlaceholder": "分支名称",
+        "newWorktreeTitle": "新建工作树",
+        "newWorktreeDescription": "从当前分支 {branch} 创建新的工作树",
+        "branchNameLabel": "分支名称",
+        "worktreePathLabel": "工作树路径",
+        "worktreePathPlaceholder": "工作树路径"
+      }
+    },
+    "commitDialog": {
+      "toasts": {
+        "commitCompleted": "提交代码完成",
+        "committedFiles": "已提交 {count} 个文件",
+        "addedToVcs": "已添加到 VCS",
+        "addToVcsFailed": "添加到 VCS 失败",
+        "fileDeleted": "文件已删除",
+        "deleteFailed": "删除失败",
+        "fileRolledBack": "文件已回滚",
+        "rollbackFailed": "回滚失败"
+      },
+      "confirm": {
+        "deleteTitle": "确认删除",
+        "deleteDescription": "确定要删除文件「{file}」吗？此操作不可恢复。",
+        "rollbackTitle": "确认回滚",
+        "rollbackDescription": "确定要回滚文件「{file}」到 HEAD 版本吗？未保存的修改将丢失。"
+      },
+      "actions": {
+        "select": "选择",
+        "unselect": "取消选择",
+        "rollback": "回滚",
+        "addToVcs": "添加到 VCS"
+      },
+      "aria": {
+        "selectFile": "{action} {path}",
+        "unselectAllFiles": "取消选择全部文件",
+        "selectAllFiles": "选择全部文件",
+        "unselectTracked": "取消选择已跟踪改动",
+        "selectTracked": "选择已跟踪改动",
+        "unselectUntracked": "取消选择未跟踪文件",
+        "selectUntracked": "选择未跟踪文件"
+      },
+      "loading": "加载中...",
+      "selectionCount": "{selected} / {total} 个文件",
+      "emptyFiles": "没有改动的文件",
+      "trackedChanges": "已跟踪改动 ({count})",
+      "untrackedFiles": "未跟踪文件 ({count})",
+      "commitMessage": "提交消息",
+      "commitMessagePlaceholder": "输入提交信息...",
+      "commitButton": "提交 ({count})",
+      "head": "HEAD",
+      "workingTree": "Working Tree",
+      "clickFileToDiff": "点击文件名查看差异",
+      "loadingDiff": "加载差异..."
+    },
+    "gitLogTab": {
+      "filesTitle": "Files",
+      "expandAllFiles": "展开全部文件",
+      "collapseAllFiles": "折叠全部文件",
+      "workspace": "工作区",
+      "retry": "重试",
+      "noCommitsFound": "未找到提交记录",
+      "hash": "Hash",
+      "copyHash": "复制哈希",
+      "author": "作者",
+      "noFileChangeDetails": "暂无文件变更详情。",
+      "branchesTitle": "分支",
+      "loadingBranches": "正在加载分支...",
+      "noContainingBranches": "未找到包含此提交的分支。",
+      "newBranch": "新建分支...",
+      "viewCommitDiffAria": "查看提交 {hash} 的差异",
+      "copyFullCommitHashAria": "复制完整提交哈希 {hash}",
+      "pushStatus": {
+        "pushed": "已推送到远程",
+        "notPushed": "未推送到远程",
+        "unknown": "推送状态未知（未配置上游分支）"
+      },
+      "time": {
+        "monthsAgo": "{count} 个月前",
+        "daysAgo": "{count} 天前",
+        "hoursAgo": "{count} 小时前",
+        "minsAgo": "{count} 分钟前",
+        "justNow": "刚刚"
+      },
+      "toasts": {
+        "createdAndSwitchedNewBranch": "已创建并切换到新分支",
+        "newBranchFromCommit": "{name}（来自 {shortHash}）",
+        "createBranchFailed": "新建分支失败"
+      },
+      "branchSelector": {
+        "selectBranchPlaceholder": "选择分支...",
+        "localBranches": "本地分支",
+        "current": "当前",
+        "remoteBranches": "远程分支",
+        "refreshCommitHistory": "刷新提交记录"
+      },
+      "dialogs": {
+        "newBranchTitle": "新建分支",
+        "newBranchDescription": "以提交 {shortHash} 作为最后提交创建新分支。",
+        "branchNamePlaceholder": "分支名称"
+      }
+    },
+    "gitChangesTab": {
+      "workspace": "工作区",
+      "noChanges": "暂无本地改动",
+      "trackedChanges": "本地已跟踪改动 ({count})",
+      "untrackedFiles": "本地未跟踪文件 ({count})",
+      "expandTracked": "展开已跟踪改动",
+      "collapseTracked": "折叠已跟踪改动",
+      "expandUntracked": "展开未跟踪文件",
+      "collapseUntracked": "折叠未跟踪文件",
+      "actions": {
+        "rollback": "回滚",
+        "addToVcs": "添加到 VCS"
+      },
+      "toasts": {
+        "noAddableFilesInDir": "该目录下没有可添加到 VCS 的变更文件",
+        "noRollbackFilesInDir": "该目录下没有可回滚的变更文件",
+        "addedToVcs": "已添加 {name} 到 VCS",
+        "addToVcsFailed": "添加到 VCS 失败",
+        "rolledBack": "已回滚 {name}",
+        "rollbackFailed": "回滚失败",
+        "addedFilesToVcs": "已添加 {count} 个文件到 VCS",
+        "rolledBackFiles": "已回滚 {count} 个文件"
+      },
+      "directoryDialog": {
+        "descriptionAdd": "选择目录 {path} 下要添加到 VCS 的文件。",
+        "descriptionRollback": "选择目录 {path} 下要回滚的文件。",
+        "descriptionFallback": "选择要操作的文件。",
+        "selectionCount": "已选择 {selected} / {total} 个文件",
+        "selectAll": "全选",
+        "unselectAll": "取消全选",
+        "loadingCandidates": "正在加载目录变更...",
+        "noOperableFiles": "没有可操作的文件"
+      },
+      "rollbackConfirm": {
+        "title": "确认回滚",
+        "descriptionWithTarget": "确定回滚{kind}「{name}」的本地修改吗？",
+        "descriptionFallback": "确定回滚本地修改吗？",
+        "kindDirectory": "目录",
+        "kindFile": "文件"
+      }
+    },
+    "fileTreeTab": {
+      "workspace": "工作区",
+      "retry": "重试",
+      "git": "Git",
+      "openInFileManager": "在文件管理器打开",
+      "openInFinder": "在访达打开",
+      "openInExplorer": "在资源管理器打开",
+      "attachToCurrentSession": "附加到当前会话",
+      "compareWithBranch": "与分支比较...",
+      "reloadFromDisk": "从磁盘重新加载",
+      "openIn": "打开于",
+      "openInTerminal": "在终端打开",
+      "actions": {
+        "select": "选择",
+        "unselect": "取消选择",
+        "rollback": "回滚",
+        "addToVcs": "添加到 VCS"
+      },
+      "aria": {
+        "selectPath": "{action} {path}"
+      },
+      "toasts": {
+        "openDirectoryFailed": "打开目录失败",
+        "openBuiltinTerminalFailed": "无法打开内置终端",
+        "noAddableFilesInDir": "该目录下没有可添加到 VCS 的变更文件",
+        "noRollbackFilesInDir": "该目录下没有可回滚的变更文件",
+        "addedToVcs": "已添加 {name} 到 VCS",
+        "addToVcsFailed": "添加到 VCS 失败",
+        "loadBranchesFailed": "加载分支失败",
+        "renameFailed": "重命名失败",
+        "deleteFailed": "删除失败",
+        "rolledBack": "已回滚 {name}",
+        "rollbackFailed": "回滚失败",
+        "addedFilesToVcs": "已添加 {count} 个文件到 VCS",
+        "rolledBackFiles": "已回滚 {count} 个文件",
+        "savedAsCopy": "已另存为副本",
+        "saveCopyFailed": "另存为副本失败",
+        "watchStartFailed": "文件监听启动失败"
+      },
+      "renameDialog": {
+        "renameDirectory": "重命名目录",
+        "renameFile": "重命名文件",
+        "description": "输入新的名称（仅名称，不含路径）。",
+        "placeholderDirectory": "new-folder-name",
+        "placeholderFile": "new-file-name.ext"
+      },
+      "directoryDialog": {
+        "descriptionAdd": "选择目录 {path} 下要添加到 VCS 的文件。",
+        "descriptionRollback": "选择目录 {path} 下要回滚的文件。",
+        "descriptionFallback": "选择要操作的文件。",
+        "selectionCount": "已选择 {selected} / {total} 个文件",
+        "selectAll": "全选",
+        "unselectAll": "取消全选",
+        "loadingCandidates": "正在加载目录变更...",
+        "noOperableFiles": "没有可操作的文件"
+      },
+      "compareDialog": {
+        "title": "与分支比较",
+        "descriptionWithTarget": "选择分支并与{kind} {path} 对比",
+        "descriptionFallback": "选择要比较的分支。",
+        "kindDirectory": "目录",
+        "kindFile": "文件",
+        "filterPlaceholder": "过滤分支，例如 main / origin/main",
+        "singleClickHint": "单击分支即可直接比较",
+        "loadingBranches": "正在加载分支...",
+        "recentBranches": "最近分支 ({count})",
+        "noCurrentBranch": "无当前分支",
+        "localBranches": "本地分支 ({count})",
+        "remoteBranches": "远程分支 ({count})",
+        "noMatchingBranches": "无匹配分支"
+      },
+      "externalConflictDialog": {
+        "title": "检测到外部文件变更",
+        "descriptionWithPath": "文件 {path} 在磁盘已发生变化，当前编辑内容尚未保存。",
+        "descriptionFallback": "当前文件在磁盘已发生变化，当前编辑内容尚未保存。",
+        "compare": "对比",
+        "savingCopy": "另存中...",
+        "saveAsCopy": "另存为副本",
+        "reload": "重载"
+      },
+      "deleteConfirm": {
+        "title": "确认删除",
+        "descriptionWithTarget": "确定删除{kind} \"{name}\" 吗？此操作不可撤销。",
+        "descriptionFallback": "此操作不可撤销。",
+        "kindDirectory": "目录",
+        "kindFile": "文件"
+      },
+      "rollbackConfirm": {
+        "title": "确认回滚",
+        "descriptionWithTarget": "确定回滚文件 \"{name}\" 的本地修改吗？",
+        "descriptionFallback": "确定回滚该文件的本地修改吗？"
+      },
+      "terminalTitle": "终端 · {name}"
+    },
+    "commandDropdown": {
+      "loading": "加载中...",
+      "addCommand": "添加命令",
+      "manageCommands": "管理命令...",
+      "runCommandTitle": "运行：{command}",
+      "stopCommandTitle": "停止：{command}",
+      "manageDialog": {
+        "title": "管理命令",
+        "empty": "暂无命令",
+        "namePlaceholder": "名称",
+        "commandPlaceholder": "命令",
+        "add": "添加",
+        "saving": "保存中..."
+      }
     }
   }
 }

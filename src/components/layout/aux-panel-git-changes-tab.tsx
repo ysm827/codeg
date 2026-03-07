@@ -10,6 +10,7 @@ import {
 } from "react"
 import { listen, type UnlistenFn } from "@tauri-apps/api/event"
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import {
   CommitFileAdditions,
@@ -423,6 +424,8 @@ function toWorkingTreeChanges(
 }
 
 export function GitChangesTab() {
+  const t = useTranslations("Folder.gitChangesTab")
+  const tCommon = useTranslations("Folder.common")
   const { folder } = useFolderContext()
   const { activeTab } = useAuxPanelContext()
   const { openFilePreview, openWorkingTreeDiff } = useWorkspaceContext()
@@ -466,8 +469,8 @@ export function GitChangesTab() {
   const folderName = useMemo(() => {
     const path = folder?.path ?? ""
     const parts = path.split(/[\\/]/).filter(Boolean)
-    return (parts[parts.length - 1] ?? path) || "workspace"
-  }, [folder?.path])
+    return (parts[parts.length - 1] ?? path) || t("workspace")
+  }, [folder?.path, t])
 
   const trackedChanges = useMemo(
     () => changes.filter((change) => !isUntrackedStatus(change.status)),
@@ -712,8 +715,8 @@ export function GitChangesTab() {
           resetDirectoryGitActionDialog()
           toast.info(
             action === "add"
-              ? "该目录下没有可添加到VCS的变更文件"
-              : "该目录下没有可回滚的变更文件"
+              ? t("toasts.noAddableFilesInDir")
+              : t("toasts.noRollbackFilesInDir")
           )
           return
         }
@@ -729,7 +732,7 @@ export function GitChangesTab() {
         setDirectoryGitLoading(false)
       }
     },
-    [folder?.path, resetDirectoryGitActionDialog]
+    [folder?.path, resetDirectoryGitActionDialog, t]
   )
 
   const handleRequestRollback = useCallback(
@@ -753,14 +756,14 @@ export function GitChangesTab() {
       if (!folder?.path) return
       try {
         await gitAddFiles(folder.path, [target.path])
-        toast.success(`已添加 ${target.name} 到VCS`)
+        toast.success(t("toasts.addedToVcs", { name: target.name }))
         await fetchChanges({ inline: true })
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
-        toast.error("添加到VCS失败", { description: message })
+        toast.error(t("toasts.addToVcsFailed"), { description: message })
       }
     },
-    [fetchChanges, folder?.path, openDirectoryGitActionDialog]
+    [fetchChanges, folder?.path, openDirectoryGitActionDialog, t]
   )
 
   const handleRollbackConfirm = useCallback(async () => {
@@ -769,16 +772,16 @@ export function GitChangesTab() {
     setRollingBack(true)
     try {
       await gitRollbackFile(folder.path, rollbackTarget.path)
-      toast.success(`已回滚 ${rollbackTarget.name}`)
+      toast.success(t("toasts.rolledBack", { name: rollbackTarget.name }))
       setRollbackTarget(null)
       await fetchChanges({ inline: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      toast.error("回滚失败", { description: message })
+      toast.error(t("toasts.rollbackFailed"), { description: message })
     } finally {
       setRollingBack(false)
     }
-  }, [fetchChanges, folder?.path, rollbackTarget])
+  }, [fetchChanges, folder?.path, rollbackTarget, t])
 
   const directoryGitAllFilePaths = useMemo(
     () => directoryGitCandidates.map((entry) => entry.path),
@@ -830,12 +833,20 @@ export function GitChangesTab() {
     try {
       if (directoryGitActionType === "add") {
         await gitAddFiles(folder.path, selectedPaths)
-        toast.success(`已添加 ${selectedPaths.length} 个文件到VCS`)
+        toast.success(
+          t("toasts.addedFilesToVcs", {
+            count: selectedPaths.length,
+          })
+        )
       } else {
         for (const filePath of selectedPaths) {
           await gitRollbackFile(folder.path, filePath)
         }
-        toast.success(`已回滚 ${selectedPaths.length} 个文件`)
+        toast.success(
+          t("toasts.rolledBackFiles", {
+            count: selectedPaths.length,
+          })
+        )
       }
 
       resetDirectoryGitActionDialog()
@@ -844,7 +855,9 @@ export function GitChangesTab() {
       const message = error instanceof Error ? error.message : String(error)
       setDirectoryGitError(message)
       toast.error(
-        directoryGitActionType === "add" ? "添加到VCS失败" : "回滚失败",
+        directoryGitActionType === "add"
+          ? t("toasts.addToVcsFailed")
+          : t("toasts.rollbackFailed"),
         {
           description: message,
         }
@@ -858,6 +871,7 @@ export function GitChangesTab() {
     fetchChanges,
     folder?.path,
     resetDirectoryGitActionDialog,
+    t,
   ])
 
   useEffect(() => {
@@ -893,7 +907,7 @@ export function GitChangesTab() {
                   void openWorkingTreeDiff(node.path, { mode: "overview" })
                 }}
               >
-                查看差异
+                {tCommon("viewDiff")}
               </ContextMenuItem>
               <ContextMenuItem
                 onSelect={() => {
@@ -901,14 +915,14 @@ export function GitChangesTab() {
                 }}
                 variant="destructive"
               >
-                回滚
+                {t("actions.rollback")}
               </ContextMenuItem>
               <ContextMenuItem
                 onSelect={() => {
                   void handleAddToVcs(target)
                 }}
               >
-                添加到VCS
+                {t("actions.addToVcs")}
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
@@ -959,14 +973,14 @@ export function GitChangesTab() {
                 void openFilePreview(file.path)
               }}
             >
-              打开文件
+              {tCommon("openFile")}
             </ContextMenuItem>
             <ContextMenuItem
               onSelect={() => {
                 void openWorkingTreeDiff(file.path)
               }}
             >
-              查看差异
+              {tCommon("viewDiff")}
             </ContextMenuItem>
             <ContextMenuItem
               onSelect={() => {
@@ -974,14 +988,14 @@ export function GitChangesTab() {
               }}
               variant="destructive"
             >
-              回滚
+              {t("actions.rollback")}
             </ContextMenuItem>
             <ContextMenuItem
               onSelect={() => {
                 void handleAddToVcs(target)
               }}
             >
-              添加到VCS
+              {t("actions.addToVcs")}
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
@@ -992,6 +1006,8 @@ export function GitChangesTab() {
       handleRequestRollback,
       openFilePreview,
       openWorkingTreeDiff,
+      t,
+      tCommon,
     ]
   )
 
@@ -1023,7 +1039,7 @@ export function GitChangesTab() {
                   void openWorkingTreeDiff(node.path, { mode: "overview" })
                 }}
               >
-                查看差异
+                {tCommon("viewDiff")}
               </ContextMenuItem>
               <ContextMenuItem
                 onSelect={() => {
@@ -1031,14 +1047,14 @@ export function GitChangesTab() {
                 }}
                 variant="destructive"
               >
-                回滚
+                {t("actions.rollback")}
               </ContextMenuItem>
               <ContextMenuItem
                 onSelect={() => {
                   void handleAddToVcs(target)
                 }}
               >
-                添加到VCS
+                {t("actions.addToVcs")}
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
@@ -1079,14 +1095,14 @@ export function GitChangesTab() {
                 void openFilePreview(file.path)
               }}
             >
-              打开文件
+              {tCommon("openFile")}
             </ContextMenuItem>
             <ContextMenuItem
               onSelect={() => {
                 void openWorkingTreeDiff(file.path)
               }}
             >
-              查看差异
+              {tCommon("viewDiff")}
             </ContextMenuItem>
             <ContextMenuItem
               onSelect={() => {
@@ -1094,14 +1110,14 @@ export function GitChangesTab() {
               }}
               variant="destructive"
             >
-              回滚
+              {t("actions.rollback")}
             </ContextMenuItem>
             <ContextMenuItem
               onSelect={() => {
                 void handleAddToVcs(target)
               }}
             >
-              添加到VCS
+              {t("actions.addToVcs")}
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
@@ -1112,6 +1128,8 @@ export function GitChangesTab() {
       handleRequestRollback,
       openFilePreview,
       openWorkingTreeDiff,
+      t,
+      tCommon,
     ]
   )
 
@@ -1139,14 +1157,16 @@ export function GitChangesTab() {
       <div className="h-full min-h-0 overflow-y-auto">
         {trackedChanges.length === 0 && untrackedChanges.length === 0 ? (
           <div className="px-2 py-2 text-xs text-muted-foreground">
-            暂无本地改动
+            {t("noChanges")}
           </div>
         ) : (
           <div className="space-y-2 pb-2">
             {trackedChanges.length > 0 && (
               <section className="space-y-1">
                 <div className="flex items-center justify-between px-2 py-1 text-[11px] text-muted-foreground">
-                  <span>本地已跟踪改动 ({trackedChanges.length})</span>
+                  <span>
+                    {t("trackedChanges", { count: trackedChanges.length })}
+                  </span>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -1154,10 +1174,14 @@ export function GitChangesTab() {
                     onClick={toggleTrackedExpanded}
                     disabled={!trackedCanExpand && !trackedCanCollapse}
                     title={
-                      trackedCanExpand ? "展开已跟踪改动" : "折叠已跟踪改动"
+                      trackedCanExpand
+                        ? t("expandTracked")
+                        : t("collapseTracked")
                     }
                     aria-label={
-                      trackedCanExpand ? "展开已跟踪改动" : "折叠已跟踪改动"
+                      trackedCanExpand
+                        ? t("expandTracked")
+                        : t("collapseTracked")
                     }
                   >
                     {trackedCanExpand ? (
@@ -1188,7 +1212,9 @@ export function GitChangesTab() {
             {untrackedChanges.length > 0 && (
               <section className="space-y-1">
                 <div className="flex items-center justify-between px-2 py-1 text-[11px] text-muted-foreground">
-                  <span>本地未跟踪文件 ({untrackedChanges.length})</span>
+                  <span>
+                    {t("untrackedFiles", { count: untrackedChanges.length })}
+                  </span>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -1196,10 +1222,14 @@ export function GitChangesTab() {
                     onClick={toggleUntrackedExpanded}
                     disabled={!untrackedCanExpand && !untrackedCanCollapse}
                     title={
-                      untrackedCanExpand ? "展开未跟踪文件" : "折叠未跟踪文件"
+                      untrackedCanExpand
+                        ? t("expandUntracked")
+                        : t("collapseUntracked")
                     }
                     aria-label={
-                      untrackedCanExpand ? "展开未跟踪文件" : "折叠未跟踪文件"
+                      untrackedCanExpand
+                        ? t("expandUntracked")
+                        : t("collapseUntracked")
                     }
                   >
                     {untrackedCanExpand ? (
@@ -1240,19 +1270,29 @@ export function GitChangesTab() {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {directoryGitActionType === "add" ? "添加到VCS" : "回滚"}
+              {directoryGitActionType === "add"
+                ? t("actions.addToVcs")
+                : t("actions.rollback")}
             </DialogTitle>
             <DialogDescription>
               {directoryGitActionTarget
-                ? `选择目录 ${directoryGitActionTarget.path} 下要${directoryGitActionType === "add" ? "添加到VCS" : "回滚"}的文件。`
-                : "选择要操作的文件。"}
+                ? directoryGitActionType === "add"
+                  ? t("directoryDialog.descriptionAdd", {
+                      path: directoryGitActionTarget.path,
+                    })
+                  : t("directoryDialog.descriptionRollback", {
+                      path: directoryGitActionTarget.path,
+                    })
+                : t("directoryDialog.descriptionFallback")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2 text-xs">
               <span className="text-muted-foreground">
-                已选择 {directoryGitSelectedPaths.size} /{" "}
-                {directoryGitAllFilePaths.length} 个文件
+                {t("directoryDialog.selectionCount", {
+                  selected: directoryGitSelectedPaths.size,
+                  total: directoryGitAllFilePaths.length,
+                })}
               </span>
               <Button
                 type="button"
@@ -1261,13 +1301,15 @@ export function GitChangesTab() {
                 disabled={directoryGitLoading || directoryGitSubmitting}
                 onClick={handleToggleDirectoryGitSelectAll}
               >
-                {directoryGitAllSelected ? "取消全选" : "全选"}
+                {directoryGitAllSelected
+                  ? t("directoryDialog.unselectAll")
+                  : t("directoryDialog.selectAll")}
               </Button>
             </div>
             <div className="max-h-80 overflow-auto rounded-md border">
               {directoryGitLoading ? (
                 <div className="py-8 text-center text-xs text-muted-foreground">
-                  正在加载目录变更...
+                  {t("directoryDialog.loadingCandidates")}
                 </div>
               ) : directoryGitError ? (
                 <div className="p-3 text-xs text-destructive">
@@ -1309,7 +1351,7 @@ export function GitChangesTab() {
                 </div>
               ) : (
                 <div className="py-8 text-center text-xs text-muted-foreground">
-                  没有可操作的文件
+                  {t("directoryDialog.noOperableFiles")}
                 </div>
               )}
             </div>
@@ -1320,7 +1362,7 @@ export function GitChangesTab() {
                 disabled={directoryGitSubmitting}
                 onClick={resetDirectoryGitActionDialog}
               >
-                取消
+                {tCommon("cancel")}
               </Button>
               <Button
                 type="button"
@@ -1338,7 +1380,9 @@ export function GitChangesTab() {
                   void handleDirectoryGitActionConfirm()
                 }}
               >
-                {directoryGitActionType === "add" ? "添加到VCS" : "回滚"}
+                {directoryGitActionType === "add"
+                  ? t("actions.addToVcs")
+                  : t("actions.rollback")}
               </Button>
             </DialogFooter>
           </div>
@@ -1354,15 +1398,23 @@ export function GitChangesTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认回滚</AlertDialogTitle>
+            <AlertDialogTitle>{t("rollbackConfirm.title")}</AlertDialogTitle>
             <AlertDialogDescription>
               {rollbackTarget
-                ? `确定回滚${rollbackTarget.kind === "dir" ? "目录" : "文件"} "${rollbackTarget.name}" 的本地修改吗？`
-                : "确定回滚本地修改吗？"}
+                ? t("rollbackConfirm.descriptionWithTarget", {
+                    kind:
+                      rollbackTarget.kind === "dir"
+                        ? t("rollbackConfirm.kindDirectory")
+                        : t("rollbackConfirm.kindFile"),
+                    name: rollbackTarget.name,
+                  })
+                : t("rollbackConfirm.descriptionFallback")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={rollingBack}>取消</AlertDialogCancel>
+            <AlertDialogCancel disabled={rollingBack}>
+              {tCommon("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               disabled={rollingBack}
@@ -1370,7 +1422,7 @@ export function GitChangesTab() {
                 void handleRollbackConfirm()
               }}
             >
-              回滚
+              {t("actions.rollback")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
