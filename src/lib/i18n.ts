@@ -3,6 +3,8 @@ import type { AppLocale, SystemLanguageSettings } from "@/lib/types"
 export const APP_LOCALES: readonly AppLocale[] = ["en", "zh_cn", "zh_tw"]
 const FALLBACK_APP_LOCALE: AppLocale = "en"
 export const LANGUAGE_SETTINGS_STORAGE_KEY = "codeg.system_language_settings"
+export const LANGUAGE_MODE_COOKIE_KEY = "codeg.language_mode"
+export const LANGUAGE_COOKIE_KEY = "codeg.locale"
 export type IntlLocale = "en" | "zh-CN" | "zh-TW"
 
 export const DEFAULT_LANGUAGE_SETTINGS: SystemLanguageSettings = {
@@ -16,8 +18,26 @@ export const APP_LOCALE_TO_INTL_LOCALE: Record<AppLocale, IntlLocale> = {
   zh_tw: "zh-TW",
 }
 
+export const INTL_LOCALE_TO_APP_LOCALE: Record<IntlLocale, AppLocale> = {
+  en: "en",
+  "zh-CN": "zh_cn",
+  "zh-TW": "zh_tw",
+}
+
 export function isAppLocale(value: unknown): value is AppLocale {
   return APP_LOCALES.includes(value as AppLocale)
+}
+
+export function isIntlLocale(value: unknown): value is IntlLocale {
+  return value === "en" || value === "zh-CN" || value === "zh-TW"
+}
+
+export function toIntlLocale(locale: AppLocale): IntlLocale {
+  return APP_LOCALE_TO_INTL_LOCALE[locale]
+}
+
+export function fromIntlLocale(locale: IntlLocale): AppLocale {
+  return INTL_LOCALE_TO_APP_LOCALE[locale]
 }
 
 export function normalizeLanguageSettings(
@@ -34,7 +54,7 @@ export function normalizeLanguageSettings(
   }
 }
 
-function mapSystemLocaleToAppLocale(localeTag: string): AppLocale | null {
+export function mapLocaleTagToAppLocale(localeTag: string): AppLocale | null {
   const normalized = localeTag.trim().toLowerCase().replace(/_/g, "-")
 
   if (!normalized) return null
@@ -54,6 +74,26 @@ function mapSystemLocaleToAppLocale(localeTag: string): AppLocale | null {
   return null
 }
 
+export function parseAcceptLanguageHeader(value: string | null): string[] {
+  if (!value) return []
+
+  return value
+    .split(",")
+    .map((entry) => entry.split(";")[0]?.trim())
+    .filter((entry): entry is string => Boolean(entry))
+}
+
+export function parseLocaleFromCookieValue(
+  value: string | undefined
+): AppLocale | null {
+  if (!value) return null
+
+  if (isAppLocale(value)) return value
+  if (isIntlLocale(value)) return fromIntlLocale(value)
+
+  return mapLocaleTagToAppLocale(value)
+}
+
 export function getSystemLocaleCandidates(): string[] {
   if (typeof navigator === "undefined") return []
 
@@ -67,7 +107,7 @@ export function getSystemLocaleCandidates(): string[] {
 
 export function resolveSystemLocale(candidates: string[]): AppLocale | null {
   for (const candidate of candidates) {
-    const resolved = mapSystemLocaleToAppLocale(candidate)
+    const resolved = mapLocaleTagToAppLocale(candidate)
     if (resolved) return resolved
   }
 

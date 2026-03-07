@@ -3,7 +3,10 @@ import "./globals.css"
 import { JetBrains_Mono } from "next/font/google"
 import { NextIntlClientProvider } from "next-intl"
 import { AppI18nProvider } from "@/components/i18n-provider"
+import { getMessagesForLocale } from "@/i18n/messages"
+import { resolveRequestLocale } from "@/i18n/resolve-request-locale"
 import { ThemeProvider } from "@/components/theme-provider"
+import { toIntlLocale } from "@/lib/i18n"
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -15,16 +18,30 @@ export const metadata: Metadata = {
   description: "AI Coding Agent Conversation Manager",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const appLocale = await resolveRequestLocale()
+  const initialLocale = toIntlLocale(appLocale)
+  const initialMessages = await getMessagesForLocale(appLocale)
+
   return (
-    <html lang="en" className={jetbrainsMono.variable} suppressHydrationWarning>
+    <html
+      lang={initialLocale}
+      className={jetbrainsMono.variable}
+      suppressHydrationWarning
+    >
       <body>
-        <NextIntlClientProvider locale="en" messages={null}>
-          <AppI18nProvider>
+        <NextIntlClientProvider
+          locale={initialLocale}
+          messages={initialMessages}
+        >
+          <AppI18nProvider
+            initialLocale={initialLocale}
+            initialMessages={initialMessages}
+          >
             <ThemeProvider
               attribute="class"
               defaultTheme="system"

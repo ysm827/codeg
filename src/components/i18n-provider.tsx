@@ -12,14 +12,18 @@ import {
 import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl"
 import { getFallbackMessages, getMessagesForLocale } from "@/i18n/messages"
 import {
-  APP_LOCALE_TO_INTL_LOCALE,
-  DEFAULT_LANGUAGE_SETTINGS,
+  fromIntlLocale,
   getSystemLocaleCandidates,
+  LANGUAGE_COOKIE_KEY,
+  LANGUAGE_MODE_COOKIE_KEY,
   LANGUAGE_SETTINGS_STORAGE_KEY,
   normalizeLanguageSettings,
   resolveAppLocale,
+  toIntlLocale,
+  type IntlLocale,
 } from "@/lib/i18n"
 import { getSystemLanguageSettings } from "@/lib/tauri"
+import { AppBootLoading } from "@/components/layout/app-boot-loading"
 import type { AppLocale, SystemLanguageSettings } from "@/lib/types"
 
 interface AppI18nContextValue {
@@ -48,18 +52,6 @@ function getSystemLocaleServerSnapshot(): string {
   return ""
 }
 
-function loadPersistedLanguageSettings(): SystemLanguageSettings | null {
-  if (typeof window === "undefined") return null
-
-  try {
-    const raw = window.localStorage.getItem(LANGUAGE_SETTINGS_STORAGE_KEY)
-    if (!raw) return null
-    return normalizeLanguageSettings(JSON.parse(raw) as SystemLanguageSettings)
-  } catch {
-    return null
-  }
-}
-
 function persistLanguageSettings(settings: SystemLanguageSettings) {
   if (typeof window === "undefined") return
 
@@ -73,6 +65,17 @@ function persistLanguageSettings(settings: SystemLanguageSettings) {
   }
 }
 
+function persistLanguageCookies(
+  settings: SystemLanguageSettings,
+  appLocale: AppLocale
+) {
+  if (typeof document === "undefined") return
+
+  const maxAge = 60 * 60 * 24 * 365
+  document.cookie = `${LANGUAGE_MODE_COOKIE_KEY}=${settings.mode}; Path=/; Max-Age=${maxAge}; SameSite=Lax`
+  document.cookie = `${LANGUAGE_COOKIE_KEY}=${toIntlLocale(appLocale)}; Path=/; Max-Age=${maxAge}; SameSite=Lax`
+}
+
 export function useAppI18n() {
   const context = useContext(AppI18nContext)
   if (!context) {
@@ -81,14 +84,29 @@ export function useAppI18n() {
   return context
 }
 
-export function AppI18nProvider({ children }: { children: React.ReactNode }) {
+interface AppI18nProviderProps {
+  children: React.ReactNode
+  initialLocale?: IntlLocale
+  initialMessages?: AbstractIntlMessages
+}
+
+export function AppI18nProvider({
+  children,
+  initialLocale = "en",
+  initialMessages,
+}: AppI18nProviderProps) {
+  const initialAppLocale = fromIntlLocale(initialLocale)
   const [languageSettings, setLanguageSettingsState] =
-    useState<SystemLanguageSettings>(
-      () => loadPersistedLanguageSettings() ?? DEFAULT_LANGUAGE_SETTINGS
-    )
+    useState<SystemLanguageSettings>({
+      mode: "manual",
+      language: initialAppLocale,
+    })
   const [languageSettingsLoaded, setLanguageSettingsLoaded] = useState(false)
   const [messages, setMessages] = useState<AbstractIntlMessages>(
-    getFallbackMessages()
+    initialMessages ?? getFallbackMessages()
+  )
+  const [messagesLocale, setMessagesLocale] = useState<AppLocale>(
+    initialMessages ? initialAppLocale : "en"
   )
 
   const systemLocaleSnapshot = useSyncExternalStore(
@@ -137,15 +155,22 @@ export function AppI18nProvider({ children }: { children: React.ReactNode }) {
     [languageSettings, systemLocaleCandidates]
   )
 
-  const intlLocale = APP_LOCALE_TO_INTL_LOCALE[appLocale]
+  useEffect(() => {
+    if (!languageSettingsLoaded) return
+    persistLanguageCookies(languageSettings, appLocale)
+  }, [appLocale, languageSettings, languageSettingsLoaded])
 
   useEffect(() => {
+    if (appLocale === messagesLocale) {
+      return
+    }
     let cancelled = false
 
     getMessagesForLocale(appLocale)
       .then((nextMessages) => {
         if (!cancelled) {
           setMessages(nextMessages)
+          setMessagesLocale(appLocale)
         }
       })
       .catch((err) => {
@@ -155,11 +180,15 @@ export function AppI18nProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [appLocale])
+  }, [appLocale, messagesLocale])
+
+  const localeReady = appLocale === messagesLocale
+  const appReady = languageSettingsLoaded && localeReady
+  const activeIntlLocale = toIntlLocale(messagesLocale)
 
   useEffect(() => {
-    document.documentElement.lang = intlLocale
-  }, [intlLocale])
+    document.documentElement.lang = activeIntlLocale
+  }, [activeIntlLocale])
 
   const contextValue = useMemo<AppI18nContextValue>(
     () => ({
@@ -173,8 +202,8 @@ export function AppI18nProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppI18nContext.Provider value={contextValue}>
-      <NextIntlClientProvider locale={intlLocale} messages={messages}>
-        {children}
+      <NextIntlClientProvider locale={activeIntlLocale} messages={messages}>
+        {appReady ? children : <AppBootLoading />}
       </NextIntlClientProvider>
     </AppI18nContext.Provider>
   )
