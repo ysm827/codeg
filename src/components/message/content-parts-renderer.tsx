@@ -1084,6 +1084,7 @@ function sanitizeLiveTitle(title: string | null | undefined): string | null {
 
 /** Edit tool: file path + unified diff view */
 function EditToolInput({ input }: { input: Record<string, unknown> }) {
+  const t = useTranslations("Folder.chat.contentParts")
   const filePath = str(input, "file_path")
   const oldString = str(input, "old_string") ?? ""
   const newString = str(input, "new_string") ?? ""
@@ -1109,11 +1110,11 @@ function EditToolInput({ input }: { input: Record<string, unknown> }) {
       <div className="flex items-center gap-2 text-xs">
         <FilePenLineIcon className="size-3.5 shrink-0 text-muted-foreground" />
         <span className="break-all font-mono text-foreground">
-          {filePath ?? "unknown"}
+          {filePath ?? t("unknown")}
         </span>
         {replaceAll && (
           <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-            REPLACE ALL
+            {t("replaceAll")}
           </span>
         )}
       </div>
@@ -1124,6 +1125,7 @@ function EditToolInput({ input }: { input: Record<string, unknown> }) {
 
 /** Edit tool (changes payload): file list + summary + combined diff view */
 function EditChangesToolInput({ changes }: { changes: EditChangePreview[] }) {
+  const t = useTranslations("Folder.chat.contentParts")
   const { additions, deletions, diffCode } = useMemo(() => {
     let additions = 0
     let deletions = 0
@@ -1167,7 +1169,7 @@ function EditChangesToolInput({ changes }: { changes: EditChangePreview[] }) {
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <span>Files: {changes.length}</span>
+        <span>{t("filesCount", { count: changes.length })}</span>
         {additions > 0 && <span>+{additions}</span>}
         {deletions > 0 && <span>-{deletions}</span>}
       </div>
@@ -1175,7 +1177,7 @@ function EditChangesToolInput({ changes }: { changes: EditChangePreview[] }) {
         {changes.slice(0, 8).map((change, index) => (
           <div key={`${change.path}-${index}`} className="flex gap-2 text-xs">
             <span className="shrink-0 rounded bg-blue-500/15 px-1.5 py-0.5 font-medium uppercase text-blue-600">
-              update
+              {t("update")}
             </span>
             <span className="break-all font-mono text-foreground">
               {change.path}
@@ -1184,7 +1186,7 @@ function EditChangesToolInput({ changes }: { changes: EditChangePreview[] }) {
         ))}
         {changes.length > 8 && (
           <div className="text-xs text-muted-foreground">
-            +{changes.length - 8} more files
+            {t("moreFiles", { count: changes.length - 8 })}
           </div>
         )}
       </div>
@@ -1195,6 +1197,7 @@ function EditChangesToolInput({ changes }: { changes: EditChangePreview[] }) {
 
 /** Bash / exec_command: terminal-style command display */
 function BashToolInput({ input }: { input: Record<string, unknown> }) {
+  const t = useTranslations("Folder.chat.contentParts")
   const command =
     commandFromUnknownValue(input) ??
     str(input, "command") ??
@@ -1216,8 +1219,8 @@ function BashToolInput({ input }: { input: Record<string, unknown> }) {
       {displayCommand && <CodeBlock code={displayCommand} language="bash" />}
       {(timeout || background) && (
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-          {timeout && <span>Timeout: {timeout}ms</span>}
-          {background && <span>Background: true</span>}
+          {timeout && <span>{t("timeoutMs", { timeout })}</span>}
+          {background && <span>{t("backgroundTrue")}</span>}
         </div>
       )}
     </div>
@@ -1232,6 +1235,7 @@ function FileToolInput({
   toolName: string
   input: Record<string, unknown>
 }) {
+  const t = useTranslations("Folder.chat.contentParts")
   const name = toolName.toLowerCase()
   const filePath =
     str(input, "file_path") ?? str(input, "path") ?? str(input, "notebook_path")
@@ -1263,15 +1267,15 @@ function FileToolInput({
       )}
       {(offset != null || limit != null || pages) && (
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-          {offset != null && <span>Offset: {offset}</span>}
-          {limit != null && <span>Limit: {limit}</span>}
-          {pages && <span>Pages: {pages}</span>}
+          {offset != null && <span>{t("offset", { offset })}</span>}
+          {limit != null && <span>{t("limit", { limit })}</span>}
+          {pages && <span>{t("pages", { pages })}</span>}
         </div>
       )}
       {(cellType || editMode) && (
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-          {editMode && <span>Mode: {editMode}</span>}
-          {cellType && <span>Cell: {cellType}</span>}
+          {editMode && <span>{t("mode", { mode: editMode })}</span>}
+          {cellType && <span>{t("cell", { cell: cellType })}</span>}
         </div>
       )}
       {(name === "write" || name === "notebookedit") &&
@@ -1295,6 +1299,7 @@ function SearchToolInput({
   toolName: string
   input: Record<string, unknown>
 }) {
+  const t = useTranslations("Folder.chat.contentParts")
   const name = toolName.toLowerCase()
   const pattern = str(input, "pattern")
   const path = str(input, "path")
@@ -1315,27 +1320,30 @@ function SearchToolInput({
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {path && (
           <span>
-            Path: <span className="font-mono text-foreground">{path}</span>
+            {t("pathLabel")}{" "}
+            <span className="font-mono text-foreground">{path}</span>
           </span>
         )}
         {glob && (
           <span>
-            Glob: <span className="font-mono text-foreground">{glob}</span>
+            {t("globLabel")}{" "}
+            <span className="font-mono text-foreground">{glob}</span>
           </span>
         )}
         {fileType && (
           <span>
-            Type: <span className="font-mono text-foreground">{fileType}</span>
+            {t("typeLabel")}{" "}
+            <span className="font-mono text-foreground">{fileType}</span>
           </span>
         )}
         {name === "grep" && outputMode && (
           <span>
-            Output:{" "}
+            {t("outputLabel")}{" "}
             <span className="font-mono text-foreground">{outputMode}</span>
           </span>
         )}
-        {caseInsensitive && <span>Case insensitive</span>}
-        {multiline && <span>Multiline</span>}
+        {caseInsensitive && <span>{t("caseInsensitive")}</span>}
+        {multiline && <span>{t("multiline")}</span>}
       </div>
     </div>
   )
@@ -1349,6 +1357,7 @@ function WebToolInput({
   toolName: string
   input: Record<string, unknown>
 }) {
+  const t = useTranslations("Folder.chat.contentParts")
   const name = toolName.toLowerCase()
   const url = str(input, "url")
   const query = str(input, "query")
@@ -1375,7 +1384,7 @@ function WebToolInput({
       {prompt && (
         <div className="space-y-1">
           <span className="text-xs font-medium text-muted-foreground">
-            Prompt
+            {t("promptLabel")}
           </span>
           <div className="rounded-md bg-muted/50 p-3 text-xs prose prose-sm dark:prose-invert max-w-none [&_ul]:list-inside [&_ol]:list-inside">
             <MessageResponse>{prompt}</MessageResponse>
@@ -1388,6 +1397,7 @@ function WebToolInput({
 
 /** Task tools: description / subject focused */
 function TaskToolInput({ input }: { input: Record<string, unknown> }) {
+  const t = useTranslations("Folder.chat.contentParts")
   const subject = str(input, "subject")
   const taskId = str(input, "taskId")
   const status = str(input, "status")
@@ -1401,7 +1411,7 @@ function TaskToolInput({ input }: { input: Record<string, unknown> }) {
       {subject && (
         <div className="flex items-baseline gap-2 text-xs">
           <span className="shrink-0 font-medium text-muted-foreground">
-            Subject
+            {t("subjectLabel")}
           </span>
           <span className="text-foreground">{subject}</span>
         </div>
@@ -1409,7 +1419,7 @@ function TaskToolInput({ input }: { input: Record<string, unknown> }) {
       {taskId && (
         <div className="flex items-baseline gap-2 text-xs">
           <span className="shrink-0 font-medium text-muted-foreground">
-            Task
+            {t("taskLabel")}
           </span>
           <span className="font-mono text-foreground">
             #{taskId}
@@ -1419,7 +1429,8 @@ function TaskToolInput({ input }: { input: Record<string, unknown> }) {
       )}
       {agentName && (
         <div className="text-xs text-muted-foreground">
-          Name: <span className="font-mono text-foreground">{agentName}</span>
+          {t("nameLabel")}{" "}
+          <span className="font-mono text-foreground">{agentName}</span>
         </div>
       )}
     </div>
@@ -1487,6 +1498,7 @@ function TodoWriteToolInput({ input }: { input: Record<string, unknown> }) {
 }
 
 function ApplyPatchToolInput({ input }: { input: string }) {
+  const t = useTranslations("Folder.chat.contentParts")
   const { files, additions, deletions } = useMemo(
     () => parseApplyPatchInput(input),
     [input]
@@ -1501,7 +1513,7 @@ function ApplyPatchToolInput({ input }: { input: string }) {
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <span>Files: {files.length}</span>
+        <span>{t("filesCount", { count: files.length })}</span>
         {additions > 0 && <span>+{additions}</span>}
         {deletions > 0 && <span>-{deletions}</span>}
       </div>
@@ -1521,7 +1533,7 @@ function ApplyPatchToolInput({ input }: { input: string }) {
           ))}
           {files.length > 8 && (
             <div className="text-xs text-muted-foreground">
-              +{files.length - 8} more files
+              {t("moreFiles", { count: files.length - 8 })}
             </div>
           )}
         </div>

@@ -919,6 +919,11 @@
         "kindFile": "檔案"
       }
     },
+    "tabContext": {
+      "loadingConversation": "載入中...",
+      "untitledConversation": "未命名會話",
+      "newConversation": "新增會話"
+    },
     "fileTreeTab": {
       "workspace": "工作區",
       "retry": "重試",
@@ -1056,6 +1061,21 @@
       "diffDescriptionConflict": "{path} · 磁碟與未儲存內容"
     },
     "chat": {
+      "connectionLifecycle": {
+        "tasks": {
+          "connectingTitle": "正在連線 {agent}",
+          "connectingDescription": "正在建立連線",
+          "loadingSelectorsTitle": "正在載入 {agent} 選擇項",
+          "loadingSelectorsDescription": "正在取得模式與會話設定選項"
+        },
+        "errors": {
+          "connectionFailed": "連線失敗"
+        }
+      },
+      "messageThread": {
+        "emptyTitle": "暫無訊息",
+        "emptyDescription": "開始一個會話後，訊息會顯示在這裡"
+      },
       "chatInput": {
         "connecting": "連線中...",
         "agentResponding": "Agent 正在回應...",
@@ -1140,6 +1160,8 @@
       },
       "tool": {
         "parameters": "參數",
+        "error": "錯誤",
+        "result": "結果",
         "status": {
           "approvalRequested": "等待授權",
           "approvalResponded": "已回應",
@@ -1150,9 +1172,36 @@
           "outputError": "錯誤"
         }
       },
+      "toolCallBlock": {
+        "tool": "工具",
+        "error": "錯誤",
+        "result": "結果"
+      },
       "contentParts": {
         "showingTailOutput": "為確保效能，串流輸出時僅顯示尾端內容。",
-        "result": "結果"
+        "result": "結果",
+        "unknown": "未知",
+        "replaceAll": "全部替換",
+        "filesCount": "檔案：{count}",
+        "update": "更新",
+        "moreFiles": "+{count} 個更多檔案",
+        "timeoutMs": "逾時：{timeout}ms",
+        "backgroundTrue": "背景：true",
+        "offset": "位移：{offset}",
+        "limit": "限制：{limit}",
+        "pages": "頁碼：{pages}",
+        "mode": "模式：{mode}",
+        "cell": "儲存格：{cell}",
+        "pathLabel": "路徑：",
+        "globLabel": "Glob：",
+        "typeLabel": "類型：",
+        "outputLabel": "輸出：",
+        "caseInsensitive": "不區分大小寫",
+        "multiline": "多行",
+        "promptLabel": "提示詞",
+        "subjectLabel": "主題",
+        "taskLabel": "任務",
+        "nameLabel": "名稱："
       }
     },
     "diffPreview": {

@@ -323,6 +323,7 @@ export const ToolOutput = ({
   errorText,
   ...props
 }: ToolOutputProps) => {
+  const t = useTranslations("Folder.chat.tool")
   if (!(output || errorText)) {
     return null
   }
@@ -348,7 +349,7 @@ export const ToolOutput = ({
   return (
     <div className={cn("space-y-2", className)} {...props}>
       <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-        {errorText ? "Error" : "Result"}
+        {errorText ? t("error") : t("result")}
       </h4>
       <div
         className={cn(

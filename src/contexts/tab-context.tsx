@@ -10,6 +10,7 @@ import {
   useMemo,
   type ReactNode,
 } from "react"
+import { useTranslations } from "next-intl"
 import { useFolderContext } from "@/contexts/folder-context"
 import { useWorkspaceContext } from "@/contexts/workspace-context"
 import { saveFolderOpenedConversations } from "@/lib/tauri"
@@ -107,6 +108,7 @@ interface TabProviderProps {
 }
 
 export function TabProvider({ children }: TabProviderProps) {
+  const t = useTranslations("Folder.tabContext")
   const { activateConversationPane } = useWorkspaceContext()
   const {
     folder,
@@ -131,7 +133,7 @@ export function TabProvider({ children }: TabProviderProps) {
           kind: "conversation" as const,
           conversationId: selectedConversation.id,
           agentType: selectedConversation.agentType,
-          title: "Loading...",
+          title: t("loadingConversation"),
           isPinned: true,
         },
       ]
@@ -188,7 +190,7 @@ export function TabProvider({ children }: TabProviderProps) {
         kind: "conversation" as const,
         conversationId: oc.conversation_id,
         agentType: oc.agent_type,
-        title: "Loading...",
+        title: t("loadingConversation"),
         isPinned: oc.is_pinned,
       }))
 
@@ -204,7 +206,7 @@ export function TabProvider({ children }: TabProviderProps) {
     return () => {
       cancelled = true
     }
-  }, [folder, restoredFolderId])
+  }, [folder, restoredFolderId, t])
 
   // Sync restored active tab to FolderProvider (deferred to avoid
   // updating parent during child render)
@@ -280,7 +282,7 @@ export function TabProvider({ children }: TabProviderProps) {
           `${tab.agentType}-${tab.conversationId}`
         )
         if (conv) {
-          const newTitle = conv.title || "Untitled conversation"
+          const newTitle = conv.title || t("untitledConversation")
           const newStatus = conv.status as ConversationStatus | undefined
           if (tab.title !== newTitle || tab.status !== newStatus) {
             return { ...tab, title: newTitle, status: newStatus }
@@ -289,7 +291,7 @@ export function TabProvider({ children }: TabProviderProps) {
       }
       return tab
     })
-  }, [rawTabs, conversationMap])
+  }, [rawTabs, conversationMap, t])
 
   const syncFolderContext = useCallback(
     (tab: TabItem | null) => {
@@ -347,7 +349,7 @@ export function TabProvider({ children }: TabProviderProps) {
           conversationsRef.current.find(
             (c) => c.id === conversationId && c.agent_type === agentType
           )?.title ??
-          "Untitled conversation"
+          t("untitledConversation")
 
         const tabId = makeConversationTabId(agentType, conversationId)
         activateTabId = tabId
@@ -381,7 +383,7 @@ export function TabProvider({ children }: TabProviderProps) {
       selectConversation(conversationId, agentType)
       activateConversationPane()
     },
-    [activateConversationPane, selectConversation]
+    [activateConversationPane, selectConversation, t]
   )
 
   const makeReplacementNewConversationTab = useCallback(
@@ -389,11 +391,11 @@ export function TabProvider({ children }: TabProviderProps) {
       id: makeNewConversationTabId(),
       kind: "new_conversation",
       agentType: preferred?.agentType ?? "codex",
-      title: "New Conversation",
+      title: t("newConversation"),
       isPinned: true,
       workingDir: preferred?.workingDir ?? folder?.path,
     }),
-    [folder?.path]
+    [folder?.path, t]
   )
 
   const closeTab = useCallback(
@@ -517,7 +519,7 @@ export function TabProvider({ children }: TabProviderProps) {
         id: tabId,
         kind: "new_conversation",
         agentType,
-        title: "New Conversation",
+        title: t("newConversation"),
         isPinned: true,
         workingDir,
       }
@@ -527,7 +529,7 @@ export function TabProvider({ children }: TabProviderProps) {
       startNewConversation(agentType, workingDir)
       activateConversationPane()
     },
-    [activateConversationPane, startNewConversation, syncFolderContext]
+    [activateConversationPane, startNewConversation, syncFolderContext, t]
   )
 
   const linkTabConversation = useCallback(

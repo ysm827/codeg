@@ -5,6 +5,7 @@ import type { ComponentProps } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ArrowDownIcon, DownloadIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useCallback } from "react"
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom"
 
@@ -42,32 +43,37 @@ export type MessageThreadEmptyStateProps = ComponentProps<"div"> & {
 
 export const MessageThreadEmptyState = ({
   className,
-  title = "No messages yet",
-  description = "Start a conversation to see messages here",
+  title,
+  description,
   icon,
   children,
   ...props
-}: MessageThreadEmptyStateProps) => (
-  <div
-    className={cn(
-      "flex size-full flex-col items-center justify-center gap-3 p-8 text-center",
-      className
-    )}
-    {...props}
-  >
-    {children ?? (
-      <>
-        {icon && <div className="text-muted-foreground">{icon}</div>}
-        <div className="space-y-1">
-          <h3 className="font-medium text-sm">{title}</h3>
-          {description && (
-            <p className="text-muted-foreground text-sm">{description}</p>
-          )}
-        </div>
-      </>
-    )}
-  </div>
-)
+}: MessageThreadEmptyStateProps) => {
+  const t = useTranslations("Folder.chat.messageThread")
+  return (
+    <div
+      className={cn(
+        "flex size-full flex-col items-center justify-center gap-3 p-8 text-center",
+        className
+      )}
+      {...props}
+    >
+      {children ?? (
+        <>
+          {icon && <div className="text-muted-foreground">{icon}</div>}
+          <div className="space-y-1">
+            <h3 className="font-medium text-sm">{title ?? t("emptyTitle")}</h3>
+            {(description ?? t("emptyDescription")) && (
+              <p className="text-muted-foreground text-sm">
+                {description ?? t("emptyDescription")}
+              </p>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
 export type MessageThreadScrollButtonProps = ComponentProps<typeof Button>
 

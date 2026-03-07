@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { ChevronRight, ChevronDown, Wrench, AlertCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
 interface ToolCallBlockProps {
@@ -17,6 +18,7 @@ export function ToolCallBlock({
   content,
   isError = false,
 }: ToolCallBlockProps) {
+  const t = useTranslations("Folder.chat.toolCallBlock")
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -40,7 +42,7 @@ export function ToolCallBlock({
         {type === "tool_use" ? (
           <>
             <Wrench className="h-3 w-3 shrink-0 text-muted-foreground" />
-            <span className="font-medium">{toolName || "Tool"}</span>
+            <span className="font-medium">{toolName || t("tool")}</span>
           </>
         ) : (
           <>
@@ -49,7 +51,9 @@ export function ToolCallBlock({
             ) : (
               <Wrench className="h-3 w-3 shrink-0 text-muted-foreground" />
             )}
-            <span className="font-medium">{isError ? "Error" : "Result"}</span>
+            <span className="font-medium">
+              {isError ? t("error") : t("result")}
+            </span>
           </>
         )}
       </button>

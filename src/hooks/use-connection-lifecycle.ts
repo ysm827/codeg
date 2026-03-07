@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useAcpActions } from "@/contexts/acp-connections-context"
 import { useTaskContext } from "@/contexts/task-context"
 import { useConnection, type UseConnectionReturn } from "@/hooks/use-connection"
@@ -48,6 +49,7 @@ export function useConnectionLifecycle({
   workingDir,
   sessionId,
 }: UseConnectionLifecycleOptions): UseConnectionLifecycleReturn {
+  const t = useTranslations("Folder.chat.connectionLifecycle")
   const { setActiveKey, touchActivity } = useAcpActions()
   const { addTask, updateTask, removeTask } = useTaskContext()
   const conn = useConnection(contextKey)
@@ -170,7 +172,11 @@ export function useConnectionLifecycle({
         const id = `acp-connect-${Date.now()}`
         taskIdRef.current = id
         const agent = AGENT_LABELS[agentType]
-        addTask(id, `Connecting to ${agent}`, `Establishing connection`)
+        addTask(
+          id,
+          t("tasks.connectingTitle", { agent }),
+          t("tasks.connectingDescription")
+        )
       }
       updateTask(taskIdRef.current, { status: "running" })
     } else if (status === "connected" || status === "prompting") {
@@ -182,7 +188,7 @@ export function useConnectionLifecycle({
       if (taskIdRef.current) {
         updateTask(taskIdRef.current, {
           status: "failed",
-          error: "Connection failed",
+          error: t("errors.connectionFailed"),
         })
         taskIdRef.current = null
       }
@@ -192,7 +198,7 @@ export function useConnectionLifecycle({
         taskIdRef.current = null
       }
     }
-  }, [status, addTask, updateTask, removeTask, agentType])
+  }, [status, addTask, updateTask, removeTask, agentType, t])
 
   useEffect(() => {
     if (status === "prompting") return
@@ -235,8 +241,8 @@ export function useConnectionLifecycle({
       const agent = AGENT_LABELS[agentType]
       addTask(
         id,
-        `Loading ${agent} selectors`,
-        "Fetching mode and session config options"
+        t("tasks.loadingSelectorsTitle", { agent }),
+        t("tasks.loadingSelectorsDescription")
       )
       updateTask(id, { status: "running" })
     }
@@ -257,6 +263,7 @@ export function useConnectionLifecycle({
     addTask,
     updateTask,
     clearSelectorTask,
+    t,
   ])
 
   // Clean up lingering task on unmount (e.g. tab closed while connecting)

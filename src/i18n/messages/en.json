@@ -919,6 +919,11 @@
         "kindFile": "file"
       }
     },
+    "tabContext": {
+      "loadingConversation": "Loading...",
+      "untitledConversation": "Untitled conversation",
+      "newConversation": "New Conversation"
+    },
     "fileTreeTab": {
       "workspace": "Workspace",
       "retry": "Retry",
@@ -1056,6 +1061,21 @@
       "diffDescriptionConflict": "{path} · disk vs unsaved"
     },
     "chat": {
+      "connectionLifecycle": {
+        "tasks": {
+          "connectingTitle": "Connecting to {agent}",
+          "connectingDescription": "Establishing connection",
+          "loadingSelectorsTitle": "Loading {agent} selectors",
+          "loadingSelectorsDescription": "Fetching mode and session config options"
+        },
+        "errors": {
+          "connectionFailed": "Connection failed"
+        }
+      },
+      "messageThread": {
+        "emptyTitle": "No messages yet",
+        "emptyDescription": "Start a conversation to see messages here"
+      },
       "chatInput": {
         "connecting": "Connecting...",
         "agentResponding": "Agent is responding...",
@@ -1140,6 +1160,8 @@
       },
       "tool": {
         "parameters": "Parameters",
+        "error": "Error",
+        "result": "Result",
         "status": {
           "approvalRequested": "Awaiting Approval",
           "approvalResponded": "Responded",
@@ -1150,9 +1172,36 @@
           "outputError": "Error"
         }
       },
+      "toolCallBlock": {
+        "tool": "Tool",
+        "error": "Error",
+        "result": "Result"
+      },
       "contentParts": {
         "showingTailOutput": "Showing tail output while streaming for performance.",
-        "result": "Result"
+        "result": "Result",
+        "unknown": "unknown",
+        "replaceAll": "REPLACE ALL",
+        "filesCount": "Files: {count}",
+        "update": "update",
+        "moreFiles": "+{count} more files",
+        "timeoutMs": "Timeout: {timeout}ms",
+        "backgroundTrue": "Background: true",
+        "offset": "Offset: {offset}",
+        "limit": "Limit: {limit}",
+        "pages": "Pages: {pages}",
+        "mode": "Mode: {mode}",
+        "cell": "Cell: {cell}",
+        "pathLabel": "Path:",
+        "globLabel": "Glob:",
+        "typeLabel": "Type:",
+        "outputLabel": "Output:",
+        "caseInsensitive": "Case insensitive",
+        "multiline": "Multiline",
+        "promptLabel": "Prompt",
+        "subjectLabel": "Subject",
+        "taskLabel": "Task",
+        "nameLabel": "Name:"
       }
     },
     "diffPreview": {

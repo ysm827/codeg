@@ -919,6 +919,11 @@
         "kindFile": "文件"
       }
     },
+    "tabContext": {
+      "loadingConversation": "加载中...",
+      "untitledConversation": "未命名会话",
+      "newConversation": "新建会话"
+    },
     "fileTreeTab": {
       "workspace": "工作区",
       "retry": "重试",
@@ -1056,6 +1061,21 @@
       "diffDescriptionConflict": "{path} · 磁盘与未保存内容"
     },
     "chat": {
+      "connectionLifecycle": {
+        "tasks": {
+          "connectingTitle": "正在连接 {agent}",
+          "connectingDescription": "正在建立连接",
+          "loadingSelectorsTitle": "正在加载 {agent} 选择项",
+          "loadingSelectorsDescription": "正在获取模式和会话配置选项"
+        },
+        "errors": {
+          "connectionFailed": "连接失败"
+        }
+      },
+      "messageThread": {
+        "emptyTitle": "暂无消息",
+        "emptyDescription": "开始一个会话后，消息会显示在这里"
+      },
       "chatInput": {
         "connecting": "连接中...",
         "agentResponding": "Agent 正在响应...",
@@ -1140,6 +1160,8 @@
       },
       "tool": {
         "parameters": "参数",
+        "error": "错误",
+        "result": "结果",
         "status": {
           "approvalRequested": "等待授权",
           "approvalResponded": "已响应",
@@ -1150,9 +1172,36 @@
           "outputError": "错误"
         }
       },
+      "toolCallBlock": {
+        "tool": "工具",
+        "error": "错误",
+        "result": "结果"
+      },
       "contentParts": {
         "showingTailOutput": "为保证性能，流式输出时仅显示尾部内容。",
-        "result": "结果"
+        "result": "结果",
+        "unknown": "未知",
+        "replaceAll": "全部替换",
+        "filesCount": "文件：{count}",
+        "update": "更新",
+        "moreFiles": "+{count} 个更多文件",
+        "timeoutMs": "超时：{timeout}ms",
+        "backgroundTrue": "后台：true",
+        "offset": "偏移：{offset}",
+        "limit": "限制：{limit}",
+        "pages": "页码：{pages}",
+        "mode": "模式：{mode}",
+        "cell": "单元：{cell}",
+        "pathLabel": "路径：",
+        "globLabel": "Glob：",
+        "typeLabel": "类型：",
+        "outputLabel": "输出：",
+        "caseInsensitive": "忽略大小写",
+        "multiline": "多行",
+        "promptLabel": "提示词",
+        "subjectLabel": "主题",
+        "taskLabel": "任务",
+        "nameLabel": "名称："
       }
     },
     "diffPreview": {
