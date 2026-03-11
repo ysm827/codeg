@@ -223,7 +223,6 @@ function reduceHydrateDetail(
   const acceptSnapshot = shouldAcceptPersistedSnapshot(current, detail)
   const prevPersistedTurnCount = current?.persistedTurns.length ?? 0
   const prevPersistedMessageCount = current?.persistedMessageCount ?? 0
-  const prevPersistedUpdatedAt = current?.persistedUpdatedAt ?? null
   const optimisticTurns = current?.optimisticTurns ?? []
   const persistedTurns = acceptSnapshot
     ? detail.turns
@@ -237,21 +236,23 @@ function reduceHydrateDetail(
   const shouldDropOptimistic =
     optimisticTurns.length > 0 &&
     persistedTurns.length >= (current?.persistedTurns.length ?? 0) + 1
-  const nextUpdatedAt = detail.summary.updated_at ?? null
-  const hasPersistedAdvance =
+  // Content advance: actual turns or messages grew — safe to clear
+  // liveMessage because persisted data now covers the streamed content.
+  const hasContentAdvance =
     acceptSnapshot &&
     (detail.turns.length > prevPersistedTurnCount ||
-      detail.summary.message_count > prevPersistedMessageCount ||
-      (nextUpdatedAt !== null &&
-        (prevPersistedUpdatedAt === null ||
-          nextUpdatedAt > prevPersistedUpdatedAt)))
+      detail.summary.message_count > prevPersistedMessageCount)
+  // Note: updated_at changes (e.g. status update bumping the timestamp)
+  // are NOT treated as content advance. Only actual turns / message_count
+  // growth should clear liveMessage, because a metadata-only bump could
+  // arrive before the session file is flushed to disk.
 
   const nextSession: ConversationRuntimeSession = {
     ...(current ?? createEmptySession(conversationId)),
     externalId: nextExternalId,
     persistedTurns,
     liveMessage:
-      hasPersistedAdvance && current?.syncState !== "awaiting_persist"
+      hasContentAdvance && current?.syncState !== "awaiting_persist"
         ? null
         : (current?.liveMessage ?? null),
     optimisticTurns: shouldDropOptimistic ? [] : optimisticTurns,
