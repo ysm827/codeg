@@ -918,7 +918,9 @@ export function ConversationDetailPanel() {
                       <div
                         className={cn(
                           "h-full",
-                          active ? "ring-1 ring-inset ring-primary/30" : ""
+                          active
+                            ? "bg-gradient-to-b from-muted/50 to-transparent"
+                            : ""
                         )}
                         onPointerDownCapture={() => {
                           if (!active) switchTab(tab.id)
